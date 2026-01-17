@@ -99,3 +99,6 @@ If you encounter any issues:
 2. Make sure you're running as Administrator (for keyboard hook)
 3. Check existing issues on GitHub
 4. Create a new issue with details
+
+# Screenshots
+
