@@ -78,6 +78,7 @@ Issues and Pull Requests are welcome!
 ## ⚠️ Disclaimer
 
 This project is for educational and personal use only. Users are responsible for any consequences of using this software.
+All the code was created using AI.
 
 **Important Notes:**
 - This is an unofficial tool and is NOT affiliated with osu! or ppy
