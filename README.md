@@ -74,6 +74,6 @@ All settings are saved in `osu_OL_v1_config.json` and persist between sessions.
 
 # Screenshots
 ## Settings
-![Settings Window](settings.png)
+![Settings Window](screenshots/setting.png)
 ## Preview
-![Display](preview.png)
+![Display](screenshots/preview.png)
