@@ -13,8 +13,8 @@ from PySide6.QtCore import Qt, QTimer, QThread, Signal, QRectF, QPointF, QProper
 from PySide6.QtGui import (QPainter, QColor, QBrush, QPen, QFont, QLinearGradient,
                            QRadialGradient, QPainterPath)
 
-#  pyinstaller --onefile --windowed --clean --icon=icon.ico --add-data "languages;languages" main.py
-# made by yulun, yulun fucked ai generated
+# pyinstaller --onefile --windowed --clean --add-data "languages;languages" main.py
+# made by yulun, yulun loves ai code.
 class TranslationManager:
     def __init__(self):
         self.translations = {}
@@ -1505,5 +1505,6 @@ if __name__ == "__main__":
 
     QTimer.singleShot(2500, settings.show)
     QTimer.singleShot(2500, show_main_windows)
+
 
     sys.exit(app.exec())
