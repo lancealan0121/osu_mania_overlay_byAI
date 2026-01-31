@@ -101,5 +101,5 @@ If you encounter any issues:
 4. Create a new issue with details
 
 # Screenshots
-![Settings Window](show1.png)
-![Display](show2.png)
+![Settings Window](settings.png)
+![Display](show.png)
