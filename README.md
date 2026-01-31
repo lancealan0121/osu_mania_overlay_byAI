@@ -102,4 +102,4 @@ If you encounter any issues:
 
 # Screenshots
 ![Settings Window](settings.png)
-![Display](show.png)
+![Display](preview.png)
