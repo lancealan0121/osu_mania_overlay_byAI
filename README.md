@@ -5,12 +5,12 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 ## Updates
 
 #2026/2/2
-- Added adjustment to the location of a single button.
-- Added a reset horizontal button.
-- Remove unnecessary displays.
-- Update all language text files.
-- Improved GUI layout.
-- Optimization logic.
+- Added adjustment to the location of a single button
+- Added a reset horizontal button
+- Remove unnecessary displays
+- Update all language text files
+- Improved GUI layout
+- Optimization logic
 
 ## Features
 
