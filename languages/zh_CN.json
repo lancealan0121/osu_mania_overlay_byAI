@@ -1,12 +1,13 @@
 {
   "window_title": "OL Mode v1 - 设置",
-  "save_button": "保存到json文件",
+  "save_button": "保存至JSON文件",
   "save_success": "设置已成功保存并应用！",
-  "stats_reset": "✅ 数据统计已重置！",
-  "max_kps_reset": "✅ 最高 KPS 记录已重置！",
+  "stats_reset": "✅ 统计已重置！",
+  "max_kps_reset": "✅ MAX KPS 记录已重置！",
+  "positions_reset": "✅ 按键位置已重置为水平对齐！",
   "loading": "正在加载...",
-  "version": "Version 1.0",
-  
+  "version": "版本 1.0",
+
   "tab_layout": "布局",
   "tab_kps": "KPS 设置",
   "tab_effects_options": "效果选项",
@@ -17,34 +18,42 @@
   "tab_advanced": "高级设置",
   "tab_keybinds": "快捷键设置",
   "tab_language": "语言设置",
-  "max_kps_group": "最高 KPS 设置",
-  
+  "max_kps_group": "MAX KPS 设置",
+  "size_group": "尺寸设置",
+  "position_group": "位置设置",
+  "combo_group": "连击设置",
+  "stats_group": "统计信息",
+  "key_count_group": "按键计数",
+  "keys_config_group": "按键配置",
+
   "key_width": "按键宽度:",
   "key_height": "按键高度:",
   "key_spacing": "按键间距:",
   "bg_opacity": "背景不透明度:",
-  
+  "reset_key_positions": "🔄 重置按键位置",
+  "position_note": "提示：左键拖动整个窗口，右键拖动单个按键。使用此按钮可将所有按键重置为水平对齐。",
+
   "kps_display_group": "KPS 显示设置",
   "show_kps": "显示 KPS",
   "kps_font_size": "KPS 字体大小:",
-  "kps_x_offset": "KPS X 轴偏移:",
-  "kps_y_offset": "KPS Y 轴偏移:",
+  "kps_x_offset": "KPS X 偏移:",
+  "kps_y_offset": "KPS Y 偏移:",
   "max_kps_limit": "最大 KPS 限制:",
   "kps_color_change": "KPS 根据数值变色",
   "kps_custom_color": "KPS 自定义颜色:",
   "choose_color": "选择颜色",
   "kps_color_note": "(不变色时使用此颜色)",
-  "auto_switch_max": "自动切换显示最高 KPS",
+  "auto_switch_max": "自动切换显示 MAX KPS",
   "switch_delay": "切换延迟时间 (秒):",
-  "switch_note": "(停止按键后自动从 KPS 切换到最高记录)",
-  
-  "show_max_kps": "显示最高 KPS",
-  "max_kps_x_offset": "最高 KPS X 轴偏移:",
-  "max_kps_y_offset": "最高 KPS Y 轴偏移:",
-  "max_kps_color": "最高 KPS 颜色:",
+  "switch_note": "(停止按键后自动从 KPS 切换到 MAX)",
+
+  "show_max_kps": "显示 MAX KPS",
+  "max_kps_x_offset": "MAX KPS X 偏移:",
+  "max_kps_y_offset": "MAX KPS Y 偏移:",
+  "max_kps_color": "MAX KPS 颜色:",
   "current_record": "当前记录: {0} KPS",
-  "reset_max_kps": "🔄 重置最高 KPS 记录",
-  
+  "reset_max_kps": "🔄 重置 MAX KPS 记录",
+
   "physics_group": "物理与风格",
   "spring_stiffness": "弹簧刚度:",
   "press_scale": "按下缩放 (%):",
@@ -53,32 +62,32 @@
   "rotation_angle": "按下旋转角度:",
   "border_width": "边框宽度:",
   "border_glow": "按下时边框发光",
-  
+
   "anim_default": "默认",
   "anim_wave": "波浪",
   "anim_pulse": "脉冲",
   "anim_bounce": "弹跳",
   "anim_elastic": "弹性",
-  
+
   "shape_rounded": "圆角",
   "shape_square": "方形",
   "shape_circle": "圆形",
   "shape_hexagon": "六边形",
-  
+
   "particle_group": "粒子效果",
   "enable_particles": "启用粒子效果",
   "particle_count": "粒子数量:",
   "gravity": "重力:",
-  "explosion_force": "爆发力度:",
+  "explosion_force": "爆炸力度:",
   "decay_speed": "消失速度:",
   "particle_shape": "粒子形状:",
   "min_particle_size": "最小粒子尺寸:",
   "max_particle_size": "最大粒子尺寸:",
-  
+
   "particle_circle": "圆形",
   "particle_square": "方形",
   "particle_star": "星形",
-  
+
   "glow_group": "光晕效果",
   "enable_glow": "启用柔和光晕",
   "glow_spread": "光晕扩散:",
@@ -86,53 +95,53 @@
   "glow_cooldown": "光晕冷却:",
   "glow_color": "光晕颜色:",
   "glow_custom_color": "自定义光晕颜色:",
-  
+
   "vis_group": "音符可视化",
   "enable_vis": "启用可视化",
-  "vis_height": "可视高度:",
+  "vis_height": "视觉高度:",
   "note_speed": "音符速度:",
   "note_opacity": "音符不透明度:",
   "vis_gradient": "启用透明度渐变",
-  
+
   "enable_trail": "启用轨迹效果",
   "trail_length": "轨迹长度:",
   "enable_shake": "启用震动效果",
   "shake_intensity": "震动强度:",
-  
+
   "glow_key": "按键色",
   "glow_white": "白色",
   "glow_rainbow": "彩虹",
   "glow_custom": "自定义",
-  
+
   "enable_rainbow": "启用彩虹模式",
   "rainbow_speed": "彩虹速度:",
   "rainbow_note": "(彩虹模式会覆盖按键颜色设置)",
-  
+
   "enable_combo": "启用连击计数器",
   "combo_reset_time": "连击重置时间 (秒):",
   "enable_stats": "显示统计信息",
   "show_key_count": "显示每个按键计数",
   "key_count_font": "按键计数字体大小:",
   "key_count_color": "按键计数颜色:",
-  "reset_all_stats": "🔄 重置所有统计数据",
+  "reset_all_stats": "🔄 重置所有统计",
   "total_presses": "总按键数: {0}",
-  
+
   "key_count": "按键数量:",
   "key_label": "按键 {0}:",
   "set_keybind": "设置按键",
   "press_key": "按下任意键...",
-  
+
   "toggle_settings": "切换设置界面:",
   "keybind_note": "点击按钮后按下想要设置的按键",
-  
+
   "fps_limit": "FPS 限制:",
   "fps_note": "注: 更高的 FPS = 更流畅但消耗更多 CPU",
-  
+
   "language": "语言:",
   "language_note": "切换语言后将自动重新加载设置界面",
-  
+
   "kps_display": "{0} KPS",
-  "max_display": "最高: {0}",
+  "max_display": "MAX: {0}",
   "stats_display": "总计: {0} | 时间: {1}分 {2}秒",
   "combo_display": "x{0}"
 }
