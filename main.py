@@ -1443,9 +1443,9 @@ class OLSettings(QWidget):
 
     def draw_key_list(self):
         while self.k_list_v.count():
-            i = self.k_list_v.takeAt(0)
-            if i.widget():
-                i.widget().deleteLater()
+            item = self.k_list_v.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
         self.keybind_buttons = []
         self.cls = []
@@ -1474,7 +1474,10 @@ class OLSettings(QWidget):
             r.addWidget(keybind_btn)
             r.addWidget(b, 1)
 
-            self.k_list_v.addLayout(r)
+            row = QWidget()
+            row.setLayout(r)
+            self.k_list_v.addWidget(row)
+
             self.cls.append(c)
 
         self.k_list_v.addStretch()
