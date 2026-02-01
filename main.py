@@ -125,8 +125,8 @@ DEFAULT_CONFIG = {
     "max_kps_pos_x": 0, "max_kps_pos_y": 50, "max_kps_color": "#FFD700",
     "language": "zh_TW", "auto_switch_max": True, "switch_delay": 5.0,
     "toggle_settings_key": "f1",
-    "use_custom_positions": False,  # 新增：是否使用自定義位置
-    "key_custom_positions": [],  # 新增：每個按鍵的自定義位置 [{"x": 0, "y": 0}, ...]
+    "use_custom_positions": False,
+    "key_custom_positions": [],
 }
 
 
@@ -407,8 +407,7 @@ class OLOverlay(QWidget):
         self.move(cfg.data["window_x"], cfg.data["window_y"])
         self.last_key_press_time = time.time()
 
-        # 新增：拖動相關變數
-        self.dragging_key_index = -1  # -1 表示拖動整個窗口
+        self.dragging_key_index = -1
         self.drag_start_pos = QPointF(0, 0)
 
         self.setup_ui()
@@ -422,7 +421,6 @@ class OLOverlay(QWidget):
         self.hide()
 
     def setup_ui(self):
-        # 修復1: 保留現有的 press_count
         old_states = {}
         if self.keys_state:
             for i, state in enumerate(self.keys_state):
@@ -437,22 +435,18 @@ class OLOverlay(QWidget):
             c = cfg.data["colors"][i] if i < len(cfg.data["colors"]) else "#FFFFFF"
             new_state = KeyState(l, c)
 
-            # 恢復舊的計數
             if i in old_states:
                 new_state.press_count = old_states[i]['press_count']
                 new_state.combo = old_states[i]['combo']
 
             self.keys_state.append(new_state)
 
-        # 修復3: 確保自定義位置數組長度正確
         if "key_custom_positions" not in cfg.data:
             cfg.data["key_custom_positions"] = []
 
-        # 調整自定義位置數組長度
         while len(cfg.data["key_custom_positions"]) < cfg.data["key_count"]:
             cfg.data["key_custom_positions"].append({"x": 0, "y": 0})
 
-        # 移除多餘的自定義位置
         if len(cfg.data["key_custom_positions"]) > cfg.data["key_count"]:
             cfg.data["key_custom_positions"] = cfg.data["key_custom_positions"][:cfg.data["key_count"]]
 
@@ -738,12 +732,10 @@ class OLOverlay(QWidget):
             painter.restore()
 
     def get_key_at_pos(self, pos):
-        """獲取點擊位置對應的按鍵索引"""
         kw, kh = cfg.data["width"], cfg.data["height"]
 
         for idx in range(len(self.keys_state)):
             x, y = self.get_key_position(idx)
-            # 擴大hitbox便於點擊
             if (x - 10 <= pos.x() <= x + kw + 10 and
                     y - 10 <= pos.y() <= y + kh + 10):
                 return idx
@@ -751,11 +743,9 @@ class OLOverlay(QWidget):
 
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
-            # 左鍵：拖動整個窗口
             self.dragging_key_index = -1
             self.m_pos = e.globalPosition().toPoint()
         elif e.button() == Qt.RightButton:
-            # 右鍵：拖動單個按鍵
             key_idx = self.get_key_at_pos(e.position())
             if key_idx >= 0:
                 cfg.data["use_custom_positions"] = True
@@ -764,13 +754,11 @@ class OLOverlay(QWidget):
 
     def mouseMoveEvent(self, e):
         if self.dragging_key_index == -1:
-            # 拖動整個窗口
             self.move(self.pos() + e.globalPosition().toPoint() - self.m_pos)
             self.m_pos = e.globalPosition().toPoint()
             cfg.data["window_x"] = self.pos().x()
             cfg.data["window_y"] = self.pos().y()
         elif self.dragging_key_index >= 0:
-            # 拖動單個按鍵
             delta = e.position() - self.drag_start_pos
             if self.dragging_key_index < len(cfg.data["key_custom_positions"]):
                 cfg.data["key_custom_positions"][self.dragging_key_index]["x"] += delta.x()
@@ -1320,14 +1308,11 @@ class OLSettings(QWidget):
         """處理按鍵數量變化"""
         old_count = cfg.data["key_count"]
 
-        # 修復3: 正確調整配置數組
-        # 調整 keys 數組
         while len(cfg.data["keys"]) < new_count:
             cfg.data["keys"].append("k")
         if len(cfg.data["keys"]) > new_count:
             cfg.data["keys"] = cfg.data["keys"][:new_count]
 
-        # 調整 colors 數組
         default_colors = ["#00E5FF", "#00FF88", "#FF0077", "#FFD600", "#9C27B0", "#FF5722"]
         while len(cfg.data["colors"]) < new_count:
             idx = len(cfg.data["colors"])
@@ -1335,18 +1320,15 @@ class OLSettings(QWidget):
         if len(cfg.data["colors"]) > new_count:
             cfg.data["colors"] = cfg.data["colors"][:new_count]
 
-        # 調整自定義位置數組
         while len(cfg.data["key_custom_positions"]) < new_count:
             cfg.data["key_custom_positions"].append({"x": 0, "y": 0})
         if len(cfg.data["key_custom_positions"]) > new_count:
             cfg.data["key_custom_positions"] = cfg.data["key_custom_positions"][:new_count]
 
-        # 重要：立即重新繪製按鍵列表以反映數量變化
         self.draw_key_list()
         self.auto_apply()
 
     def reset_key_positions(self):
-        """重置按鍵位置為水平對齊"""
         cfg.data["use_custom_positions"] = False
         cfg.data["key_custom_positions"] = [{"x": 0, "y": 0} for _ in range(cfg.data["key_count"])]
         cfg.save()
@@ -1468,7 +1450,6 @@ class OLSettings(QWidget):
         self.keybind_buttons = []
         self.cls = []
 
-        # 修復1: 使用當前設定的按鍵數量，而不是配置中的數量
         current_key_count = self.ui_cnt.value()
 
         for i in range(current_key_count):
@@ -1677,4 +1658,3 @@ if __name__ == "__main__":
     QTimer.singleShot(2500, show_main_windows)
 
     sys.exit(app.exec())
-
