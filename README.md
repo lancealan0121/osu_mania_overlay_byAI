@@ -7,6 +7,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 #2026/2/2
 - Added adjustment to the location of a single button
 - Added a reset horizontal button
+- Fix display issues
 - Remove unnecessary displays
 - Update all language text files
 - Improved GUI layout
