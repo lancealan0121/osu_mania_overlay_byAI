@@ -13,8 +13,9 @@ from PySide6.QtCore import Qt, QTimer, QThread, Signal, QRectF, QPointF, QProper
 from PySide6.QtGui import (QPainter, QColor, QBrush, QPen, QFont, QLinearGradient,
                            QRadialGradient, QPainterPath)
 
-# pyinstaller --onefile --windowed --clean --add-data "languages;languages" main.py
-# made by yulun, yulun loves ai code.
+
+#  pyinstaller --onefile --windowed --clean --icon=icon.ico --add-data "languages;languages" main.py
+# made by yulun, yulun fucked ai generated
 class TranslationManager:
     def __init__(self):
         self.translations = {}
@@ -124,6 +125,8 @@ DEFAULT_CONFIG = {
     "max_kps_pos_x": 0, "max_kps_pos_y": 50, "max_kps_color": "#FFD700",
     "language": "zh_TW", "auto_switch_max": True, "switch_delay": 5.0,
     "toggle_settings_key": "f1",
+    "use_custom_positions": False,  # 新增：是否使用自定義位置
+    "key_custom_positions": [],  # 新增：每個按鍵的自定義位置 [{"x": 0, "y": 0}, ...]
 }
 
 
@@ -403,6 +406,11 @@ class OLOverlay(QWidget):
         self.last_time = time.time()
         self.move(cfg.data["window_x"], cfg.data["window_y"])
         self.last_key_press_time = time.time()
+
+        # 新增：拖動相關變數
+        self.dragging_key_index = -1  # -1 表示拖動整個窗口
+        self.drag_start_pos = QPointF(0, 0)
+
         self.setup_ui()
         self.timer = QTimer()
         self.timer.timeout.connect(self.tick)
@@ -414,21 +422,61 @@ class OLOverlay(QWidget):
         self.hide()
 
     def setup_ui(self):
+        # 修復1: 保留現有的 press_count
+        old_states = {}
+        if self.keys_state:
+            for i, state in enumerate(self.keys_state):
+                old_states[i] = {
+                    'press_count': state.press_count,
+                    'combo': state.combo
+                }
+
         self.keys_state = []
         for i in range(cfg.data["key_count"]):
             l = cfg.data["keys"][i] if i < len(cfg.data["keys"]) else "?"
             c = cfg.data["colors"][i] if i < len(cfg.data["colors"]) else "#FFFFFF"
-            self.keys_state.append(KeyState(l, c))
+            new_state = KeyState(l, c)
+
+            # 恢復舊的計數
+            if i in old_states:
+                new_state.press_count = old_states[i]['press_count']
+                new_state.combo = old_states[i]['combo']
+
+            self.keys_state.append(new_state)
+
+        # 修復3: 確保自定義位置數組長度正確
+        if "key_custom_positions" not in cfg.data:
+            cfg.data["key_custom_positions"] = []
+
+        # 調整自定義位置數組長度
+        while len(cfg.data["key_custom_positions"]) < cfg.data["key_count"]:
+            cfg.data["key_custom_positions"].append({"x": 0, "y": 0})
+
+        # 移除多餘的自定義位置
+        if len(cfg.data["key_custom_positions"]) > cfg.data["key_count"]:
+            cfg.data["key_custom_positions"] = cfg.data["key_custom_positions"][:cfg.data["key_count"]]
+
         w = (cfg.data["width"] + cfg.data["spacing"]) * cfg.data["key_count"] + 300
         h = cfg.data["vis_height"] + 300
         self.resize(w, h)
 
+    def get_key_position(self, index):
+        """獲取按鍵的位置（考慮自定義位置）"""
+        kw, spacing = cfg.data["width"], cfg.data["spacing"]
+        base_y = cfg.data["vis_height"] + 80
+
+        if cfg.data.get("use_custom_positions", False) and index < len(cfg.data["key_custom_positions"]):
+            custom_pos = cfg.data["key_custom_positions"][index]
+            return 100 + index * (kw + spacing) + custom_pos["x"], base_y + custom_pos["y"]
+        else:
+            return 100 + index * (kw + spacing), base_y
+
     def handle_input(self, name, pressed):
         for i, char in enumerate(cfg.data["keys"]):
             if char.lower() == name.lower():
-                kw, spacing = cfg.data["width"], cfg.data["spacing"]
-                x_c = 100 + i * (kw + spacing) + kw / 2
-                y_c = cfg.data["vis_height"] + 80
+                x_c, y_c = self.get_key_position(i)
+                kw = cfg.data["width"]
+                x_c += kw / 2
 
                 if pressed:
                     if not self.keys_state[i].was_pressed:
@@ -541,7 +589,6 @@ class OLOverlay(QWidget):
 
         kw, kh = cfg.data["width"], cfg.data["height"]
         vis_h, spacing = cfg.data["vis_height"], cfg.data["spacing"]
-        start_x, base_y = 100, vis_h + 80
 
         if cfg.data["show_kps"]:
             idle_time = time.time() - self.last_key_press_time
@@ -580,6 +627,8 @@ class OLOverlay(QWidget):
             painter.drawText(QRectF(10, 10, 400, 30), Qt.AlignLeft, stats_text)
 
         for idx, k in enumerate(self.keys_state):
+            start_x, base_y = self.get_key_position(idx)
+
             if cfg.data["enable_rainbow"]:
                 hue = (self.rainbow_hue + idx * 60) % 360
                 color = QColor.fromHsv(int(hue), 255, 255)
@@ -688,16 +737,51 @@ class OLOverlay(QWidget):
 
             painter.restore()
 
-            start_x += kw + spacing
+    def get_key_at_pos(self, pos):
+        """獲取點擊位置對應的按鍵索引"""
+        kw, kh = cfg.data["width"], cfg.data["height"]
+
+        for idx in range(len(self.keys_state)):
+            x, y = self.get_key_position(idx)
+            # 擴大hitbox便於點擊
+            if (x - 10 <= pos.x() <= x + kw + 10 and
+                    y - 10 <= pos.y() <= y + kh + 10):
+                return idx
+        return -1
 
     def mousePressEvent(self, e):
-        self.m_pos = e.globalPosition().toPoint()
+        if e.button() == Qt.LeftButton:
+            # 左鍵：拖動整個窗口
+            self.dragging_key_index = -1
+            self.m_pos = e.globalPosition().toPoint()
+        elif e.button() == Qt.RightButton:
+            # 右鍵：拖動單個按鍵
+            key_idx = self.get_key_at_pos(e.position())
+            if key_idx >= 0:
+                cfg.data["use_custom_positions"] = True
+                self.dragging_key_index = key_idx
+                self.drag_start_pos = e.position()
 
     def mouseMoveEvent(self, e):
-        self.move(self.pos() + e.globalPosition().toPoint() - self.m_pos)
-        self.m_pos = e.globalPosition().toPoint()
-        cfg.data["window_x"] = self.pos().x()
-        cfg.data["window_y"] = self.pos().y()
+        if self.dragging_key_index == -1:
+            # 拖動整個窗口
+            self.move(self.pos() + e.globalPosition().toPoint() - self.m_pos)
+            self.m_pos = e.globalPosition().toPoint()
+            cfg.data["window_x"] = self.pos().x()
+            cfg.data["window_y"] = self.pos().y()
+        elif self.dragging_key_index >= 0:
+            # 拖動單個按鍵
+            delta = e.position() - self.drag_start_pos
+            if self.dragging_key_index < len(cfg.data["key_custom_positions"]):
+                cfg.data["key_custom_positions"][self.dragging_key_index]["x"] += delta.x()
+                cfg.data["key_custom_positions"][self.dragging_key_index]["y"] += delta.y()
+                self.drag_start_pos = e.position()
+                self.update()
+
+    def mouseReleaseEvent(self, e):
+        if self.dragging_key_index >= 0:
+            cfg.save()
+        self.dragging_key_index = -1
 
     def closeEvent(self, event):
         cfg.save()
@@ -804,7 +888,11 @@ class OLSettings(QWidget):
     def create_all_tabs(self):
         # Tab 1: Layout
         self.t_lay = QWidget()
-        lf = QFormLayout(self.t_lay)
+        lay_main_layout = QVBoxLayout(self.t_lay)
+
+        # 尺寸設定群組
+        size_group = QGroupBox(t("size_group"))
+        lf = QFormLayout()
         self.ui_w = self.add_spin(lf, t("key_width"), 30, 5000, cfg.data["width"])
         self.ui_h = self.add_spin(lf, t("key_height"), 20, 5000, cfg.data["height"])
         self.ui_spacing = self.add_spin(lf, t("key_spacing"), 0, 500, cfg.data["spacing"])
@@ -814,7 +902,25 @@ class OLSettings(QWidget):
         self.ui_h.valueChanged.connect(self.auto_apply)
         self.ui_spacing.valueChanged.connect(self.auto_apply)
         self.ui_bg_opacity.valueChanged.connect(self.auto_apply)
+        size_group.setLayout(lf)
+        lay_main_layout.addWidget(size_group)
 
+        # 位置設定群組
+        position_group = QGroupBox(t("position_group"))
+        pf = QFormLayout()
+        reset_positions_btn = QPushButton(t("reset_key_positions"))
+        reset_positions_btn.setStyleSheet("background: #4A90E2; color: white; padding: 8px; font-weight: bold;")
+        reset_positions_btn.clicked.connect(self.reset_key_positions)
+        pf.addRow(reset_positions_btn)
+
+        position_note = QLabel(t("position_note"))
+        position_note.setStyleSheet("color: #888; font-size: 12px;")
+        position_note.setWordWrap(True)
+        pf.addRow(position_note)
+        position_group.setLayout(pf)
+        lay_main_layout.addWidget(position_group)
+
+        lay_main_layout.addStretch()
         self.tabs.addTab(self.t_lay, t("tab_layout"))
 
         # Tab 2: KPS Settings
@@ -877,9 +983,6 @@ class OLSettings(QWidget):
         self.ui_max_kps_color_btn.clicked.connect(self.pick_max_kps_color)
         max_kps_color_layout.addWidget(self.ui_max_kps_color_btn)
         max_kps_f.addRow(max_kps_color_layout)
-
-        self.max_kps_record_label = QLabel(t("current_record").format(cfg.data['max_kps_record']))
-        max_kps_f.addRow(self.max_kps_record_label)
 
         reset_max_kps_btn = QPushButton(t("reset_max_kps"))
         reset_max_kps_btn.setStyleSheet("background: #FF6B6B; color: white; padding: 8px; font-weight: bold;")
@@ -1051,17 +1154,40 @@ class OLSettings(QWidget):
 
         # Tab 5: Combo & Stats
         self.t_combo = QWidget()
-        combof = QFormLayout(self.t_combo)
+        combo_main_layout = QVBoxLayout(self.t_combo)
+
+        # 連擊設定群組
+        combo_group = QGroupBox(t("combo_group"))
+        combof = QFormLayout()
         self.ui_combo_en = self.add_check(combof, t("enable_combo"), cfg.data["enable_combo"])
         self.ui_combo_reset = self.add_dspin(combof, t("combo_reset_time"), 0.1, 10, cfg.data["combo_reset_time"])
-        self.ui_stats_en = self.add_check(combof, t("enable_stats"), cfg.data["enable_stats"])
 
         self.ui_combo_en.stateChanged.connect(self.auto_apply)
         self.ui_combo_reset.valueChanged.connect(self.auto_apply)
+        combo_group.setLayout(combof)
+        combo_main_layout.addWidget(combo_group)
+
+        # 統計顯示群組
+        stats_group = QGroupBox(t("stats_group"))
+        statsf = QFormLayout()
+        self.ui_stats_en = self.add_check(statsf, t("enable_stats"), cfg.data["enable_stats"])
         self.ui_stats_en.stateChanged.connect(self.auto_apply)
 
-        self.ui_show_key_count = self.add_check(combof, t("show_key_count"), cfg.data["show_key_count"])
-        self.ui_key_count_size = self.add_spin(combof, t("key_count_font"), 8, 30, cfg.data["key_count_font_size"])
+        self.stats_label = QLabel(t("total_presses").format(cfg.data['total_presses']))
+        statsf.addRow(self.stats_label)
+
+        reset_btn = QPushButton(t("reset_all_stats"))
+        reset_btn.setStyleSheet("background: #FF6B6B; color: white; padding: 8px; font-weight: bold;")
+        reset_btn.clicked.connect(self.reset_stats)
+        statsf.addRow(reset_btn)
+        stats_group.setLayout(statsf)
+        combo_main_layout.addWidget(stats_group)
+
+        # 按鍵計數顯示群組
+        key_count_group = QGroupBox(t("key_count_group"))
+        kcf = QFormLayout()
+        self.ui_show_key_count = self.add_check(kcf, t("show_key_count"), cfg.data["show_key_count"])
+        self.ui_key_count_size = self.add_spin(kcf, t("key_count_font"), 8, 30, cfg.data["key_count_font_size"])
 
         self.ui_show_key_count.stateChanged.connect(self.auto_apply)
         self.ui_key_count_size.valueChanged.connect(self.auto_apply)
@@ -1075,31 +1201,33 @@ class OLSettings(QWidget):
             f"background: {self.ui_key_count_color}; color: white; font-weight: bold; border: 2px solid #333;")
         self.ui_key_count_color_btn.clicked.connect(self.pick_key_count_color)
         key_count_color_layout.addWidget(self.ui_key_count_color_btn)
-        combof.addRow(key_count_color_layout)
+        kcf.addRow(key_count_color_layout)
+        key_count_group.setLayout(kcf)
+        combo_main_layout.addWidget(key_count_group)
 
-        reset_btn = QPushButton(t("reset_all_stats"))
-        reset_btn.setStyleSheet("background: #FF6B6B; color: white; padding: 8px; font-weight: bold;")
-        reset_btn.clicked.connect(self.reset_stats)
-        combof.addRow(reset_btn)
-
-        self.stats_label = QLabel(t("total_presses").format(cfg.data['total_presses']))
-        combof.addRow(self.stats_label)
+        combo_main_layout.addStretch()
         self.tabs.addTab(self.t_combo, t("tab_combo"))
 
         # Tab 6: Key Settings
         self.t_keys = QWidget()
         keys_main_layout = QVBoxLayout(self.t_keys)
 
+        # 按鍵數量設定群組
+        count_group = QGroupBox(t("key_count_group"))
         count_layout = QHBoxLayout()
         count_layout.addWidget(QLabel(t("key_count")))
         self.ui_cnt = QSpinBox()
         self.ui_cnt.setRange(1, 20)
         self.ui_cnt.setValue(cfg.data["key_count"])
-        self.ui_cnt.valueChanged.connect(self.draw_key_list)
-        self.ui_cnt.valueChanged.connect(self.auto_apply)
+        self.ui_cnt.valueChanged.connect(self.on_key_count_changed)
         count_layout.addWidget(self.ui_cnt)
         count_layout.addStretch()
-        keys_main_layout.addLayout(count_layout)
+        count_group.setLayout(count_layout)
+        keys_main_layout.addWidget(count_group)
+
+        # 按鍵配置群組
+        keys_config_group = QGroupBox(t("keys_config_group"))
+        keys_config_layout = QVBoxLayout()
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -1110,7 +1238,10 @@ class OLSettings(QWidget):
         self.k_list_v.setSpacing(8)
         scroll.setWidget(self.keys_container)
 
-        keys_main_layout.addWidget(scroll)
+        keys_config_layout.addWidget(scroll)
+        keys_config_group.setLayout(keys_config_layout)
+        keys_main_layout.addWidget(keys_config_group)
+
         self.tabs.addTab(self.t_keys, t("tab_keys"))
         self.draw_key_list()
 
@@ -1184,6 +1315,43 @@ class OLSettings(QWidget):
     def on_toggle_keybind_set(self, key):
         cfg.data["toggle_settings_key"] = key
         self.auto_apply()
+
+    def on_key_count_changed(self, new_count):
+        """處理按鍵數量變化"""
+        old_count = cfg.data["key_count"]
+
+        # 修復3: 正確調整配置數組
+        # 調整 keys 數組
+        while len(cfg.data["keys"]) < new_count:
+            cfg.data["keys"].append("k")
+        if len(cfg.data["keys"]) > new_count:
+            cfg.data["keys"] = cfg.data["keys"][:new_count]
+
+        # 調整 colors 數組
+        default_colors = ["#00E5FF", "#00FF88", "#FF0077", "#FFD600", "#9C27B0", "#FF5722"]
+        while len(cfg.data["colors"]) < new_count:
+            idx = len(cfg.data["colors"])
+            cfg.data["colors"].append(default_colors[idx % len(default_colors)])
+        if len(cfg.data["colors"]) > new_count:
+            cfg.data["colors"] = cfg.data["colors"][:new_count]
+
+        # 調整自定義位置數組
+        while len(cfg.data["key_custom_positions"]) < new_count:
+            cfg.data["key_custom_positions"].append({"x": 0, "y": 0})
+        if len(cfg.data["key_custom_positions"]) > new_count:
+            cfg.data["key_custom_positions"] = cfg.data["key_custom_positions"][:new_count]
+
+        # 重要：立即重新繪製按鍵列表以反映數量變化
+        self.draw_key_list()
+        self.auto_apply()
+
+    def reset_key_positions(self):
+        """重置按鍵位置為水平對齊"""
+        cfg.data["use_custom_positions"] = False
+        cfg.data["key_custom_positions"] = [{"x": 0, "y": 0} for _ in range(cfg.data["key_count"])]
+        cfg.save()
+        self.overlay.update()
+        self.show_message(t("positions_reset"))
 
     def auto_apply(self):
         anim_reverse = ["default", "wave", "pulse", "bounce", "elastic"]
@@ -1300,7 +1468,10 @@ class OLSettings(QWidget):
         self.keybind_buttons = []
         self.cls = []
 
-        for i in range(self.ui_cnt.value()):
+        # 修復1: 使用當前設定的按鍵數量，而不是配置中的數量
+        current_key_count = self.ui_cnt.value()
+
+        for i in range(current_key_count):
             r = QHBoxLayout()
             r.setSpacing(8)
 
@@ -1367,7 +1538,6 @@ class OLSettings(QWidget):
 
     def reset_max_kps_only(self):
         cfg.data["max_kps_record"] = 0
-        self.max_kps_record_label.setText(t("current_record").format(0))
         self.show_message(t("max_kps_reset"))
 
     def show_message(self, text):
@@ -1505,6 +1675,5 @@ if __name__ == "__main__":
 
     QTimer.singleShot(2500, settings.show)
     QTimer.singleShot(2500, show_main_windows)
-
 
     sys.exit(app.exec())
