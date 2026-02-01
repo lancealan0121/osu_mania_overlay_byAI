@@ -4,9 +4,10 @@
   "save_success": "設定已成功儲存並套用！",
   "stats_reset": "✅ 統計已重置！",
   "max_kps_reset": "✅ MAX KPS 記錄已重置！",
+  "positions_reset": "✅ 按鍵位置已重置為水平對齊！",
   "loading": "正在載入...",
   "version": "Version 1.0",
-  
+
   "tab_layout": "佈局",
   "tab_kps": "KPS 設定",
   "tab_effects_options": "效果選項",
@@ -18,12 +19,20 @@
   "tab_keybinds": "快捷鍵設定",
   "tab_language": "語言設定",
   "max_kps_group": "MAX KPS 設定",
-  
+  "size_group": "尺寸設定",
+  "position_group": "位置設定",
+  "combo_group": "連擊設定",
+  "stats_group": "統計資訊",
+  "key_count_group": "按鍵計數",
+  "keys_config_group": "按鍵配置",
+
   "key_width": "按鍵寬度:",
   "key_height": "按鍵高度:",
   "key_spacing": "按鍵間距:",
   "bg_opacity": "背景不透明度:",
-  
+  "reset_key_positions": "🔄 重置按鍵位置",
+  "position_note": "提示：左鍵拖動整個視窗，右鍵拖動單個按鍵。使用此按鈕可將所有按鍵重置為水平對齊。",
+
   "kps_display_group": "KPS 顯示設定",
   "show_kps": "顯示 KPS",
   "kps_font_size": "KPS 字體大小:",
@@ -37,14 +46,14 @@
   "auto_switch_max": "自動切換顯示 MAX KPS",
   "switch_delay": "切換延遲時間 (秒):",
   "switch_note": "(停止按鍵後自動從 KPS 切換到 MAX)",
-  
+
   "show_max_kps": "顯示 MAX KPS",
   "max_kps_x_offset": "MAX KPS X 偏移:",
   "max_kps_y_offset": "MAX KPS Y 偏移:",
   "max_kps_color": "MAX KPS 顏色:",
   "current_record": "目前記錄: {0} KPS",
   "reset_max_kps": "🔄 重置 MAX KPS 記錄",
-  
+
   "physics_group": "物理與風格",
   "spring_stiffness": "彈簧剛度:",
   "press_scale": "按下縮放 (%):",
@@ -53,18 +62,18 @@
   "rotation_angle": "按下旋轉角度:",
   "border_width": "邊框寬度:",
   "border_glow": "按下時邊框發光",
-  
+
   "anim_default": "預設",
   "anim_wave": "波浪",
   "anim_pulse": "脈衝",
   "anim_bounce": "彈跳",
   "anim_elastic": "彈性",
-  
+
   "shape_rounded": "圓角",
   "shape_square": "方形",
   "shape_circle": "圓形",
   "shape_hexagon": "六邊形",
-  
+
   "particle_group": "粒子效果",
   "enable_particles": "啟用粒子效果",
   "particle_count": "粒子數量:",
@@ -74,11 +83,11 @@
   "particle_shape": "粒子形狀:",
   "min_particle_size": "最小粒子尺寸:",
   "max_particle_size": "最大粒子尺寸:",
-  
+
   "particle_circle": "圓形",
   "particle_square": "方形",
   "particle_star": "星形",
-  
+
   "glow_group": "光暈效果",
   "enable_glow": "啟用柔和光暈",
   "glow_spread": "光暈擴散:",
@@ -86,28 +95,28 @@
   "glow_cooldown": "光暈冷卻:",
   "glow_color": "光暈顏色:",
   "glow_custom_color": "自訂光暈顏色:",
-  
+
   "vis_group": "音符視覺化",
   "enable_vis": "啟用視覺化",
   "vis_height": "視覺高度:",
   "note_speed": "音符速度:",
   "note_opacity": "音符不透明度:",
   "vis_gradient": "啟用透明度漸層",
-  
+
   "enable_trail": "啟用軌跡效果",
   "trail_length": "軌跡長度:",
   "enable_shake": "啟用震動效果",
   "shake_intensity": "震動強度:",
-  
+
   "glow_key": "按鍵色",
   "glow_white": "白色",
   "glow_rainbow": "彩虹",
   "glow_custom": "自訂",
-  
+
   "enable_rainbow": "啟用彩虹模式",
   "rainbow_speed": "彩虹速度:",
   "rainbow_note": "(彩虹模式會覆蓋按鍵顏色設定)",
-  
+
   "enable_combo": "啟用連擊計數器",
   "combo_reset_time": "連擊重置時間 (秒):",
   "enable_stats": "顯示統計資訊",
@@ -116,21 +125,21 @@
   "key_count_color": "按鍵計數顏色:",
   "reset_all_stats": "🔄 重置所有統計",
   "total_presses": "總按鍵數: {0}",
-  
+
   "key_count": "按鍵數量:",
   "key_label": "按鍵 {0}:",
   "set_keybind": "設定按鍵",
   "press_key": "按下任意鍵...",
-  
+
   "toggle_settings": "切換設定介面:",
   "keybind_note": "點擊按鈕後按下想要設定的按鍵",
-  
+
   "fps_limit": "FPS 限制:",
   "fps_note": "註: 更高的 FPS = 更流暢但消耗更多 CPU",
-  
+
   "language": "語言:",
   "language_note": "切換語言後將自動重新載入設定界面",
-  
+
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "總計: {0} | 時間: {1}分 {2}秒",
