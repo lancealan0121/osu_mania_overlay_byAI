@@ -23,6 +23,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 - Statistics tracking
 - Customizable key shapes and animations
 - Real-time updated interface
+- Much More...!
 
 ## Requirements
 
@@ -65,17 +66,20 @@ python main.py
 - Pulse
 - Bounce
 - Elastic
+- Much More...!
 
 ### Key Shapes
 - Rounded Rectangle
 - Square
 - Circle
 - Hexagon
+- Much More...!
 
 ### Particle Shapes
 - Circle
 - Square
 - Star
+- Much More...!
 
 ## 🔧 Configuration
 
