@@ -1,72 +1,81 @@
 {
   "window_title": "OL Mode v1 - 設定",
-  "save_button": "すべての設定をJSONファイルに保存",
-  "save_success": "設定が正常に保存されました！",
+  "save_button": "JSONファイルに保存",
+  "save_success": "設定が正常に保存され、適用されました！",
   "stats_reset": "✅ 統計がリセットされました！",
   "max_kps_reset": "✅ MAX KPS記録がリセットされました！",
+  "positions_reset": "✅ キー位置が水平配置にリセットされました！",
   "loading": "読み込み中...",
-  "version": "Version 1.0",
-  
+  "version": "バージョン 1.0",
+
   "tab_layout": "レイアウト",
   "tab_kps": "KPS設定",
   "tab_effects_options": "エフェクトオプション",
-  "tab_effects": "ビジュアルエフェクト",
+  "tab_effects": "視覚効果",
   "tab_combo": "コンボと統計",
   "tab_keys": "キー設定",
   "tab_window": "ウィンドウ設定",
   "tab_advanced": "詳細設定",
   "tab_keybinds": "キーバインド",
-  "tab_language": "言語設定",
+  "tab_language": "言語",
   "max_kps_group": "MAX KPS設定",
-  
+  "size_group": "サイズ設定",
+  "position_group": "位置設定",
+  "combo_group": "コンボ設定",
+  "stats_group": "統計情報",
+  "key_count_group": "キーカウント",
+  "keys_config_group": "キー設定",
+
   "key_width": "キー幅:",
   "key_height": "キー高さ:",
   "key_spacing": "キー間隔:",
   "bg_opacity": "背景の不透明度:",
-  
+  "reset_key_positions": "🔄 キー位置をリセット",
+  "position_note": "ヒント：左クリックでウィンドウ全体をドラッグ、右クリックで個別のキーをドラッグします。このボタンですべてのキーを水平配置にリセットできます。",
+
   "kps_display_group": "KPS表示設定",
   "show_kps": "KPSを表示",
   "kps_font_size": "KPSフォントサイズ:",
   "kps_x_offset": "KPS X オフセット:",
   "kps_y_offset": "KPS Y オフセット:",
   "max_kps_limit": "最大KPS制限:",
-  "kps_color_change": "KPSの色を値に応じて変更",
+  "kps_color_change": "値に応じてKPSの色を変更",
   "kps_custom_color": "KPSカスタムカラー:",
   "choose_color": "色を選択",
   "kps_color_note": "(色変更が無効の場合に使用)",
-  "auto_switch_max": "MAX KPSに自動切替",
-  "switch_delay": "切替遅延 (秒):",
-  "switch_note": "(アイドル後にKPSからMAXに自動切替)",
-  
+  "auto_switch_max": "MAX KPSに自動切り替え",
+  "switch_delay": "切り替え遅延（秒）:",
+  "switch_note": "(キー押下停止後、KPSからMAXに自動切り替え)",
+
   "show_max_kps": "MAX KPSを表示",
   "max_kps_x_offset": "MAX KPS X オフセット:",
   "max_kps_y_offset": "MAX KPS Y オフセット:",
   "max_kps_color": "MAX KPSカラー:",
   "current_record": "現在の記録: {0} KPS",
   "reset_max_kps": "🔄 MAX KPS記録をリセット",
-  
+
   "physics_group": "物理とスタイル",
   "spring_stiffness": "スプリング剛性:",
   "press_scale": "押下時スケール (%):",
   "animation_style": "アニメーションスタイル:",
   "key_shape": "キー形状:",
-  "rotation_angle": "押下時の回転:",
-  "border_width": "ボーダー幅:",
-  "border_glow": "押下時にボーダー発光",
-  
+  "rotation_angle": "押下時の回転角度:",
+  "border_width": "枠線の幅:",
+  "border_glow": "押下時に枠線を光らせる",
+
   "anim_default": "デフォルト",
-  "anim_wave": "ウェーブ",
+  "anim_wave": "波",
   "anim_pulse": "パルス",
   "anim_bounce": "バウンス",
   "anim_elastic": "エラスティック",
-  
+
   "shape_rounded": "角丸",
-  "shape_square": "四角形",
-  "shape_circle": "円形",
+  "shape_square": "四角",
+  "shape_circle": "円",
   "shape_hexagon": "六角形",
-  
-  "particle_group": "パーティクルエフェクト",
-  "enable_particles": "パーティクルを有効化",
+
+  "particle_group": "パーティクル効果",
+  "enable_particles": "パーティクル効果を有効化",
   "particle_count": "パーティクル数:",
   "gravity": "重力:",
   "explosion_force": "爆発力:",
@@ -74,63 +83,63 @@
   "particle_shape": "パーティクル形状:",
   "min_particle_size": "最小パーティクルサイズ:",
   "max_particle_size": "最大パーティクルサイズ:",
-  
-  "particle_circle": "円形",
-  "particle_square": "四角形",
-  "particle_star": "星形",
-  
-  "glow_group": "グローエフェクト",
+
+  "particle_circle": "円",
+  "particle_square": "四角",
+  "particle_star": "星",
+
+  "glow_group": "グロー効果",
   "enable_glow": "ソフトグローを有効化",
   "glow_spread": "グロー拡散:",
   "glow_intensity": "グロー強度:",
   "glow_cooldown": "グロークールダウン:",
   "glow_color": "グローカラー:",
   "glow_custom_color": "カスタムグローカラー:",
-  
+
   "vis_group": "ノート視覚化",
   "enable_vis": "視覚化を有効化",
   "vis_height": "ビジュアル高さ:",
   "note_speed": "ノート速度:",
   "note_opacity": "ノート不透明度:",
   "vis_gradient": "不透明度グラデーションを有効化",
-  
-  "enable_trail": "トレイルエフェクトを有効化",
+
+  "enable_trail": "トレイル効果を有効化",
   "trail_length": "トレイル長:",
-  "enable_shake": "シェイクエフェクトを有効化",
+  "enable_shake": "シェイク効果を有効化",
   "shake_intensity": "シェイク強度:",
-  
+
   "glow_key": "キーカラー",
   "glow_white": "白",
   "glow_rainbow": "レインボー",
   "glow_custom": "カスタム",
-  
+
   "enable_rainbow": "レインボーモードを有効化",
   "rainbow_speed": "レインボー速度:",
-  "rainbow_note": "(レインボーモードはキーカラーを上書きします)",
-  
+  "rainbow_note": "(レインボーモードはキーカラー設定を上書きします)",
+
   "enable_combo": "コンボカウンターを有効化",
-  "combo_reset_time": "コンボリセット時間 (秒):",
+  "combo_reset_time": "コンボリセット時間（秒）:",
   "enable_stats": "統計を表示",
-  "show_key_count": "キー押下回数を表示",
+  "show_key_count": "個別キーカウントを表示",
   "key_count_font": "キーカウントフォントサイズ:",
   "key_count_color": "キーカウントカラー:",
   "reset_all_stats": "🔄 すべての統計をリセット",
-  "total_presses": "合計押下回数: {0}",
-  
+  "total_presses": "総押下回数: {0}",
+
   "key_count": "キー数:",
   "key_label": "キー {0}:",
-  "set_keybind": "キーを設定",
+  "set_keybind": "キーバインド設定",
   "press_key": "任意のキーを押してください...",
-  
-  "toggle_settings": "設定を切り替え:",
-  "keybind_note": "ボタンをクリックして目的のキーを押してください",
-  
+
+  "toggle_settings": "設定ウィンドウ切り替え:",
+  "keybind_note": "ボタンをクリックしてから設定したいキーを押してください",
+
   "fps_limit": "FPS制限:",
-  "fps_note": "注: 高いFPS = よりスムーズですが、CPUを多く使用します",
-  
+  "fps_note": "注: 高いFPS = スムーズですがCPUを多く使用",
+
   "language": "言語:",
-  "language_note": "言語を変更すると設定ウィンドウが再読み込みされます",
-  
+  "language_note": "言語を変更すると設定画面が自動的にリロードされます",
+
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "合計: {0} | 時間: {1}分 {2}秒",
