@@ -1,29 +1,38 @@
 {
   "window_title": "OL Mode v1 - 설정",
-  "save_button": "모든 설정을 JSON 파일로 저장",
-  "save_success": "설정이 성공적으로 저장되었습니다!",
+  "save_button": "JSON 파일로 저장",
+  "save_success": "설정이 성공적으로 저장되고 적용되었습니다!",
   "stats_reset": "✅ 통계가 초기화되었습니다!",
   "max_kps_reset": "✅ MAX KPS 기록이 초기화되었습니다!",
+  "positions_reset": "✅ 키 위치가 수평 정렬로 초기화되었습니다!",
   "loading": "로딩 중...",
-  "version": "Version 1.0",
-  
+  "version": "버전 1.0",
+
   "tab_layout": "레이아웃",
   "tab_kps": "KPS 설정",
   "tab_effects_options": "효과 옵션",
-  "tab_effects": "비주얼 효과",
+  "tab_effects": "시각 효과",
   "tab_combo": "콤보 & 통계",
   "tab_keys": "키 설정",
   "tab_window": "창 설정",
   "tab_advanced": "고급 설정",
   "tab_keybinds": "키 바인딩",
-  "tab_language": "언어 설정",
+  "tab_language": "언어",
   "max_kps_group": "MAX KPS 설정",
-  
+  "size_group": "크기 설정",
+  "position_group": "위치 설정",
+  "combo_group": "콤보 설정",
+  "stats_group": "통계",
+  "key_count_group": "키 카운트",
+  "keys_config_group": "키 구성",
+
   "key_width": "키 너비:",
   "key_height": "키 높이:",
   "key_spacing": "키 간격:",
   "bg_opacity": "배경 불투명도:",
-  
+  "reset_key_positions": "🔄 키 위치 초기화",
+  "position_note": "팁: 왼쪽 클릭으로 전체 창 드래그, 오른쪽 클릭으로 개별 키 드래그. 이 버튼을 사용하여 모든 키를 수평 정렬로 초기화할 수 있습니다.",
+
   "kps_display_group": "KPS 표시 설정",
   "show_kps": "KPS 표시",
   "kps_font_size": "KPS 글꼴 크기:",
@@ -35,50 +44,50 @@
   "choose_color": "색상 선택",
   "kps_color_note": "(색상 변경이 비활성화된 경우 사용)",
   "auto_switch_max": "MAX KPS로 자동 전환",
-  "switch_delay": "전환 지연 (초):",
-  "switch_note": "(유휴 후 KPS에서 MAX로 자동 전환)",
-  
+  "switch_delay": "전환 지연 시간(초):",
+  "switch_note": "(키 누름 중지 후 KPS에서 MAX로 자동 전환)",
+
   "show_max_kps": "MAX KPS 표시",
   "max_kps_x_offset": "MAX KPS X 오프셋:",
   "max_kps_y_offset": "MAX KPS Y 오프셋:",
   "max_kps_color": "MAX KPS 색상:",
   "current_record": "현재 기록: {0} KPS",
   "reset_max_kps": "🔄 MAX KPS 기록 초기화",
-  
+
   "physics_group": "물리 & 스타일",
   "spring_stiffness": "스프링 강성:",
   "press_scale": "누름 스케일 (%):",
   "animation_style": "애니메이션 스타일:",
   "key_shape": "키 모양:",
-  "rotation_angle": "누를 때 회전:",
+  "rotation_angle": "누름 시 회전 각도:",
   "border_width": "테두리 너비:",
-  "border_glow": "누를 때 테두리 발광",
-  
+  "border_glow": "누름 시 테두리 발광",
+
   "anim_default": "기본",
   "anim_wave": "웨이브",
   "anim_pulse": "펄스",
   "anim_bounce": "바운스",
   "anim_elastic": "탄성",
-  
+
   "shape_rounded": "둥근 모서리",
   "shape_square": "사각형",
   "shape_circle": "원형",
   "shape_hexagon": "육각형",
-  
+
   "particle_group": "파티클 효과",
-  "enable_particles": "파티클 활성화",
-  "particle_count": "파티클 개수:",
+  "enable_particles": "파티클 효과 활성화",
+  "particle_count": "파티클 수:",
   "gravity": "중력:",
-  "explosion_force": "폭발 힘:",
+  "explosion_force": "폭발력:",
   "decay_speed": "감쇠 속도:",
   "particle_shape": "파티클 모양:",
   "min_particle_size": "최소 파티클 크기:",
   "max_particle_size": "최대 파티클 크기:",
-  
+
   "particle_circle": "원형",
   "particle_square": "사각형",
   "particle_star": "별",
-  
+
   "glow_group": "글로우 효과",
   "enable_glow": "소프트 글로우 활성화",
   "glow_spread": "글로우 확산:",
@@ -86,51 +95,51 @@
   "glow_cooldown": "글로우 쿨다운:",
   "glow_color": "글로우 색상:",
   "glow_custom_color": "사용자 정의 글로우 색상:",
-  
+
   "vis_group": "노트 시각화",
   "enable_vis": "시각화 활성화",
   "vis_height": "비주얼 높이:",
   "note_speed": "노트 속도:",
   "note_opacity": "노트 불투명도:",
-  "vis_gradient": "불투명도 그라디언트 활성화",
-  
+  "vis_gradient": "불투명도 그라데이션 활성화",
+
   "enable_trail": "트레일 효과 활성화",
   "trail_length": "트레일 길이:",
   "enable_shake": "흔들림 효과 활성화",
   "shake_intensity": "흔들림 강도:",
-  
+
   "glow_key": "키 색상",
   "glow_white": "흰색",
   "glow_rainbow": "무지개",
   "glow_custom": "사용자 정의",
-  
+
   "enable_rainbow": "무지개 모드 활성화",
   "rainbow_speed": "무지개 속도:",
-  "rainbow_note": "(무지개 모드는 키 색상을 덮어씁니다)",
-  
+  "rainbow_note": "(무지개 모드는 키 색상 설정을 덮어씁니다)",
+
   "enable_combo": "콤보 카운터 활성화",
-  "combo_reset_time": "콤보 리셋 시간 (초):",
+  "combo_reset_time": "콤보 초기화 시간(초):",
   "enable_stats": "통계 표시",
-  "show_key_count": "키 누름 횟수 표시",
+  "show_key_count": "개별 키 카운트 표시",
   "key_count_font": "키 카운트 글꼴 크기:",
   "key_count_color": "키 카운트 색상:",
   "reset_all_stats": "🔄 모든 통계 초기화",
   "total_presses": "총 누름 횟수: {0}",
-  
+
   "key_count": "키 개수:",
   "key_label": "키 {0}:",
-  "set_keybind": "키 설정",
+  "set_keybind": "키바인드 설정",
   "press_key": "아무 키나 누르세요...",
-  
-  "toggle_settings": "설정 토글:",
-  "keybind_note": "버튼을 클릭한 후 원하는 키를 누르세요",
-  
+
+  "toggle_settings": "설정 창 토글:",
+  "keybind_note": "버튼을 클릭한 후 설정하려는 키를 누르세요",
+
   "fps_limit": "FPS 제한:",
-  "fps_note": "참고: 높은 FPS = 더 부드럽지만 CPU를 더 많이 사용합니다",
-  
+  "fps_note": "참고: 높은 FPS = 더 부드럽지만 CPU를 더 많이 사용",
+
   "language": "언어:",
-  "language_note": "언어를 변경하면 설정 창이 다시 로드됩니다",
-  
+  "language_note": "언어를 변경하면 설정 인터페이스가 자동으로 다시 로드됩니다",
+
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "총계: {0} | 시간: {1}분 {2}초",
