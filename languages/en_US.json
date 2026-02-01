@@ -1,12 +1,13 @@
 {
   "window_title": "OL Mode v1 - Settings",
-  "save_button": "Save All Settings To Json File",
-  "save_success": "Settings saved successfully!",
-  "stats_reset": "✅ Statistics Reset!",
-  "max_kps_reset": "✅ MAX KPS Record Reset!",
+  "save_button": "Save to JSON file",
+  "save_success": "Settings saved and applied successfully!",
+  "stats_reset": "✅ Statistics reset!",
+  "max_kps_reset": "✅ MAX KPS record reset!",
+  "positions_reset": "✅ Key positions reset to horizontal alignment!",
   "loading": "Loading...",
   "version": "Version 1.0",
-  
+
   "tab_layout": "Layout",
   "tab_kps": "KPS Settings",
   "tab_effects_options": "Effect Options",
@@ -18,12 +19,20 @@
   "tab_keybinds": "Keybinds",
   "tab_language": "Language",
   "max_kps_group": "MAX KPS Settings",
-  
+  "size_group": "Size Settings",
+  "position_group": "Position Settings",
+  "combo_group": "Combo Settings",
+  "stats_group": "Statistics",
+  "key_count_group": "Key Count",
+  "keys_config_group": "Key Configuration",
+
   "key_width": "Key Width:",
   "key_height": "Key Height:",
   "key_spacing": "Key Spacing:",
   "bg_opacity": "Background Opacity:",
-  
+  "reset_key_positions": "🔄 Reset Key Positions",
+  "position_note": "Tip: Left-click to drag the entire window, right-click to drag individual keys. Use this button to reset all keys to horizontal alignment.",
+
   "kps_display_group": "KPS Display Settings",
   "show_kps": "Show KPS",
   "kps_font_size": "KPS Font Size:",
@@ -35,38 +44,38 @@
   "choose_color": "Choose Color",
   "kps_color_note": "(Used when color change is disabled)",
   "auto_switch_max": "Auto Switch to MAX KPS",
-  "switch_delay": "Switch Delay (s):",
-  "switch_note": "(Auto switch from KPS to MAX after idle)",
-  
+  "switch_delay": "Switch Delay (seconds):",
+  "switch_note": "(Automatically switch from KPS to MAX after stopping key presses)",
+
   "show_max_kps": "Show MAX KPS",
   "max_kps_x_offset": "MAX KPS X Offset:",
   "max_kps_y_offset": "MAX KPS Y Offset:",
   "max_kps_color": "MAX KPS Color:",
   "current_record": "Current Record: {0} KPS",
   "reset_max_kps": "🔄 Reset MAX KPS Record",
-  
+
   "physics_group": "Physics & Style",
   "spring_stiffness": "Spring Stiffness:",
   "press_scale": "Press Scale (%):",
   "animation_style": "Animation Style:",
   "key_shape": "Key Shape:",
-  "rotation_angle": "Rotation on Press:",
+  "rotation_angle": "Rotation Angle on Press:",
   "border_width": "Border Width:",
   "border_glow": "Border Glow on Press",
-  
+
   "anim_default": "Default",
   "anim_wave": "Wave",
   "anim_pulse": "Pulse",
   "anim_bounce": "Bounce",
   "anim_elastic": "Elastic",
-  
+
   "shape_rounded": "Rounded",
   "shape_square": "Square",
   "shape_circle": "Circle",
   "shape_hexagon": "Hexagon",
-  
+
   "particle_group": "Particle Effects",
-  "enable_particles": "Enable Particles",
+  "enable_particles": "Enable Particle Effects",
   "particle_count": "Particle Count:",
   "gravity": "Gravity:",
   "explosion_force": "Explosion Force:",
@@ -74,63 +83,63 @@
   "particle_shape": "Particle Shape:",
   "min_particle_size": "Min Particle Size:",
   "max_particle_size": "Max Particle Size:",
-  
+
   "particle_circle": "Circle",
   "particle_square": "Square",
   "particle_star": "Star",
-  
-  "glow_group": "Glow Effect",
+
+  "glow_group": "Glow Effects",
   "enable_glow": "Enable Soft Glow",
   "glow_spread": "Glow Spread:",
   "glow_intensity": "Glow Intensity:",
   "glow_cooldown": "Glow Cooldown:",
   "glow_color": "Glow Color:",
   "glow_custom_color": "Custom Glow Color:",
-  
+
   "vis_group": "Note Visualization",
   "enable_vis": "Enable Visualization",
   "vis_height": "Visual Height:",
   "note_speed": "Note Speed:",
   "note_opacity": "Note Opacity:",
   "vis_gradient": "Enable Opacity Gradient",
-  
+
   "enable_trail": "Enable Trail Effect",
   "trail_length": "Trail Length:",
   "enable_shake": "Enable Shake Effect",
   "shake_intensity": "Shake Intensity:",
-  
+
   "glow_key": "Key Color",
   "glow_white": "White",
   "glow_rainbow": "Rainbow",
   "glow_custom": "Custom",
-  
+
   "enable_rainbow": "Enable Rainbow Mode",
   "rainbow_speed": "Rainbow Speed:",
-  "rainbow_note": "(Rainbow mode overrides key colors)",
-  
+  "rainbow_note": "(Rainbow mode overrides key color settings)",
+
   "enable_combo": "Enable Combo Counter",
-  "combo_reset_time": "Combo Reset Time (s):",
+  "combo_reset_time": "Combo Reset Time (seconds):",
   "enable_stats": "Show Statistics",
-  "show_key_count": "Show Key Press Count",
+  "show_key_count": "Show Individual Key Count",
   "key_count_font": "Key Count Font Size:",
   "key_count_color": "Key Count Color:",
   "reset_all_stats": "🔄 Reset All Statistics",
   "total_presses": "Total Presses: {0}",
-  
-  "key_count": "Key Count:",
+
+  "key_count": "Number of Keys:",
   "key_label": "Key {0}:",
-  "set_keybind": "Set Key",
+  "set_keybind": "Set Keybind",
   "press_key": "Press any key...",
-  
-  "toggle_settings": "Toggle Settings:",
-  "keybind_note": "Click button then press desired key",
-  
+
+  "toggle_settings": "Toggle Settings Window:",
+  "keybind_note": "Click the button then press the key you want to set",
+
   "fps_limit": "FPS Limit:",
   "fps_note": "Note: Higher FPS = Smoother but uses more CPU",
-  
+
   "language": "Language:",
-  "language_note": "Settings window will reload after changing language",
-  
+  "language_note": "The settings interface will reload automatically after changing language",
+
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "Total: {0} | Time: {1}m {2}s",
