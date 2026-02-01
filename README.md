@@ -10,6 +10,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 - Remove unnecessary displays.
 - Update all language text files.
 - Improved GUI layout.
+- Optimization logic.
 
 ## Features
 
