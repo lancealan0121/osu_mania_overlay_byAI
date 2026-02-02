@@ -40,6 +40,9 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
   - `song_info_color`, `song_difficulty_color`, `song_no_playing_text`
   - `custom_window_size`, `window_width`, `window_height`
   - `use_custom_positions`, `key_custom_positions`
+ 
+### Version 1.1.1 (February 3, 2026)
+ - Add more statistical data options
 
 ---
 
