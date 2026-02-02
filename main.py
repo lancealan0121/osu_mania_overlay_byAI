@@ -135,6 +135,7 @@ DEFAULT_CONFIG = {
     "song_info_color": "#64C8FF",
     "song_difficulty_color": "#FFC864",
     "song_no_playing_text": "無正在遊玩的歌曲",
+    "song_waiting_osu_text": "等待 osu! 開啟...",
     "current_song": "",
     "current_artist": "",
     "current_difficulty": "",
@@ -678,14 +679,34 @@ class OLOverlay(QWidget):
                 diff_text = f"[{self.current_osu_difficulty}]"
                 painter.drawText(QRectF(diff_x, diff_y, self.width() - diff_x - 10, 25), Qt.AlignLeft, diff_text)
 
-            # 沒有歌曲時顯示提示文字（只有當兩者都沒顯示時才顯示）
+            # 根據 osu! 狀態顯示不同的提示文字
             if not (self.current_osu_song or self.current_osu_artist) and not self.current_osu_difficulty:
-                painter.setPen(QColor(100, 100, 100))
-                painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
-                no_song_text = cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲")
                 song_x = cfg.data.get("song_name_x", 10)
                 song_y = cfg.data.get("song_name_y", 80)
-                painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, no_song_text)
+
+                # 判斷是否檢測到 osu! 視窗
+                # 透過檢查 osu_tracker 執行緒的狀態來判斷
+                if hasattr(self, 'osu_window_detected'):
+                    if self.osu_window_detected:
+                        # osu! 已開啟但沒在遊玩
+                        painter.setPen(QColor(100, 100, 100))
+                        painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
+                        no_song_text = cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲")
+                        painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft,
+                                         no_song_text)
+                    else:
+                        # osu! 未開啟
+                        painter.setPen(QColor(150, 150, 150))
+                        painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
+                        waiting_text = cfg.data.get("song_waiting_osu_text", "等待 osu! 開啟...")
+                        painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft,
+                                         waiting_text)
+                else:
+                    # 初始狀態，顯示等待文字
+                    painter.setPen(QColor(150, 150, 150))
+                    painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
+                    waiting_text = cfg.data.get("song_waiting_osu_text", "等待 osu! 開啟...")
+                    painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, waiting_text)
 
 
         for idx, k in enumerate(self.keys_state):
@@ -1333,12 +1354,17 @@ class OLSettings(QWidget):
         diff_color_layout.addWidget(self.ui_song_difficulty_color_btn)
         osuf.addRow(diff_color_layout)
 
-        # 無歌曲時的顯示文字
         osuf.addRow(QLabel(""))  # 分隔線
         self.ui_no_playing_text = QLineEdit(cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲"))
         self.ui_no_playing_text.setPlaceholderText(t("no_playing_placeholder"))
         self.ui_no_playing_text.textChanged.connect(self.auto_apply)
         osuf.addRow(t("no_playing_text"), self.ui_no_playing_text)
+
+        # 新增：等待 osu! 開啟的顯示文字
+        self.ui_waiting_osu_text = QLineEdit(cfg.data.get("song_waiting_osu_text", "等待 osu! 開啟..."))
+        self.ui_waiting_osu_text.setPlaceholderText(t("waiting_osu_placeholder"))
+        self.ui_waiting_osu_text.textChanged.connect(self.auto_apply)
+        osuf.addRow(t("waiting_osu_text"), self.ui_waiting_osu_text)
 
         # 連接信號
         self.ui_osu_tracker_en.stateChanged.connect(self.auto_apply)
@@ -1596,7 +1622,6 @@ class OLSettings(QWidget):
             "key_count_color": self.ui_key_count_color,
             "auto_switch_max": self.ui_auto_switch.isChecked(),
             "switch_delay": self.ui_switch_delay.value(),
-
             "enable_osu_tracker": self.ui_osu_tracker_en.isChecked(),
             "show_song_name": self.ui_show_song_name.isChecked(),  # 新增
             "show_difficulty": self.ui_show_difficulty.isChecked(),  # 新增
@@ -1607,8 +1632,9 @@ class OLSettings(QWidget):
             "difficulty_y": self.ui_difficulty_y.value(),  # 新增
             "song_info_color": self.ui_song_info_color,  # 新增
             "song_difficulty_color": self.ui_song_difficulty_color,  # 新增
-            "song_no_playing_text": self.ui_no_playing_text.text(),  # 新增
             "custom_window_size": self.ui_custom_window_size.isChecked() if hasattr(self,'ui_custom_window_size') else False,
+            "song_no_playing_text": self.ui_no_playing_text.text(),
+            "song_waiting_osu_text": self.ui_waiting_osu_text.text()
         })
 
         self.overlay.setup_ui()
@@ -1866,12 +1892,15 @@ class ToggleKeybindListener(QThread):
 class OsuTrackerThread(QThread):
     """osu! 歌曲追蹤執行緒"""
     song_changed = Signal(dict)
+    window_status_changed = Signal(bool)
 
     def __init__(self):
         super().__init__()
         self.running = True
         self.current_song = None
         self.no_song_timer = 0  # 添加這行：用於延遲切換
+        self.osu_window_detected = False
+
 
     def get_osu_window_title(self):
         """獲取 osu! 視窗標題"""
@@ -1911,12 +1940,18 @@ class OsuTrackerThread(QThread):
                 if cfg.data.get("enable_osu_tracker", False):
                     title = self.get_osu_window_title()
 
+                    # 檢測 osu! 視窗狀態
+                    window_exists = title is not None
+                    if window_exists != self.osu_window_detected:
+                        self.osu_window_detected = window_exists
+                        self.window_status_changed.emit(window_exists)
+
                     if title:
                         song_info = self.parse_song_info(title)
 
                         if song_info and song_info != self.current_song:
                             self.current_song = song_info
-                            self.no_song_timer = 0  # 重置計時器
+                            self.no_song_timer = 0
                             self.song_changed.emit(song_info)
                         elif not song_info and self.current_song is not None:
                             self.no_song_timer += 1
@@ -1944,6 +1979,7 @@ class OsuTrackerThread(QThread):
 
     def stop(self):
         self.running = False
+
 
 class InputWorker(QThread):
     sig = Signal(str, bool)
@@ -1973,6 +2009,12 @@ if __name__ == "__main__":
 
     osu_tracker = OsuTrackerThread()
     osu_tracker.song_changed.connect(overlay.update_osu_song)
+
+    def update_window_status(detected):
+        overlay.osu_window_detected = detected
+        overlay.update()
+
+    osu_tracker.window_status_changed.connect(update_window_status)
     osu_tracker.start()
 
     settings = OLSettings(overlay)
