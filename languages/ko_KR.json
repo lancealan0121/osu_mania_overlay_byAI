@@ -142,6 +142,8 @@
   "song_difficulty_color": "난이도 색상:",
   "no_playing_text": "곡 미재생 텍스트:",
   "no_playing_placeholder": "예: osu! 재생 시작 대기 중...",
+  "waiting_osu_text": "osu! 대기 텍스트:",
+  "waiting_osu_placeholder": "예: osu!를 먼저 실행해주세요...",
 
   "show_song_name": "곡 이름 표시",
   "show_difficulty": "난이도 표시",
