@@ -142,6 +142,8 @@
   "song_difficulty_color": "难度颜色:",
   "no_playing_text": "无歌曲显示文字:",
   "no_playing_placeholder": "例如: 等待 osu! 开始游玩...",
+  "waiting_osu_text": "等待 osu! 开启文字:",
+  "waiting_osu_placeholder": "例如: 请先启动 osu!...",
 
   "show_song_name": "显示歌曲名称",
   "show_difficulty": "显示难度",
