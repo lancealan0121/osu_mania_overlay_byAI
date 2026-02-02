@@ -170,5 +170,10 @@
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "合計: {0} | 時間: {1}分 {2}秒",
-  "combo_display": "x{0}"
+  "combo_display": "x{0}",
+
+  "stats_x_offset": "統計 X オフセット:",
+  "stats_y_offset": "統計 Y オフセット:",
+  "stats_font_size": "統計フォントサイズ:",
+  "stats_color": "統計の色:"
 }
