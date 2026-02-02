@@ -171,5 +171,10 @@
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "总计: {0} | 时间: {1}分 {2}秒",
-  "combo_display": "x{0}"
+  "combo_display": "x{0}",
+  
+  "stats_x_offset": "统计 X 偏移:",
+  "stats_y_offset": "统计 Y 偏移:",
+  "stats_font_size": "统计字体大小:",
+  "stats_color": "统计颜色:"
 }
