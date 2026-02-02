@@ -116,6 +116,10 @@ DEFAULT_CONFIG = {
     "glow_color_mode": "key", "glow_custom_color": "#FF0099",
     "particle_shape": "circle", "particle_size_min": 2, "particle_size_max": 6,
     "enable_stats": True, "total_presses": 0, "session_start": 0,
+    "stats_pos_x": 10,  # 新增
+    "stats_pos_y": 10,  # 新增
+    "stats_font_size": 12,  # 新增
+    "stats_color": "#969696",  # 新增
     "show_key_count": True, "key_count_font_size": 12, "key_count_color": "#FFFFFF",
     "show_kps": True, "kps_color_change": True, "kps_custom_color": "#FFFFFF",
     "vis_gradient": True, "show_max_kps": True,
@@ -646,15 +650,17 @@ class OLOverlay(QWidget):
             painter.drawText(max_kps_rect, Qt.AlignRight, t("max_display").format(cfg.data['max_kps_record']))
 
         if cfg.data["enable_stats"]:
-            painter.setPen(QColor(150, 150, 150))
-            painter.setFont(QFont("Microsoft JhengHei UI", 12))
+            painter.setPen(QColor(cfg.data.get("stats_color", "#969696")))
+            painter.setFont(QFont("Microsoft JhengHei UI", cfg.data.get("stats_font_size", 12)))
             session_time = time.time() - cfg.data["session_start"]
             stats_text = t("stats_display").format(
                 cfg.data['total_presses'],
                 int(session_time // 60),
                 int(session_time % 60)
             )
-            painter.drawText(QRectF(10, 10, 400, 30), Qt.AlignLeft, stats_text)
+            stats_x = cfg.data.get("stats_pos_x", 10)
+            stats_y = cfg.data.get("stats_pos_y", 10)
+            painter.drawText(QRectF(stats_x, stats_y, 400, 30), Qt.AlignLeft, stats_text)
 
         if cfg.data.get("enable_osu_tracker", False):
             song_size = cfg.data.get("song_info_size", 14)
@@ -1292,6 +1298,29 @@ class OLSettings(QWidget):
         self.ui_stats_en = self.add_check(statsf, t("enable_stats"), cfg.data["enable_stats"])
         self.ui_stats_en.stateChanged.connect(self.auto_apply)
 
+        # 新增：統計位置和樣式設定
+        self.ui_stats_x = self.add_spin(statsf, t("stats_x_offset"), -10000, 10000, cfg.data.get("stats_pos_x", 10))
+        self.ui_stats_y = self.add_spin(statsf, t("stats_y_offset"), -10000, 10000, cfg.data.get("stats_pos_y", 10))
+        self.ui_stats_font_size = self.add_spin(statsf, t("stats_font_size"), 8, 30,
+                                                cfg.data.get("stats_font_size", 12))
+
+        # 新增：統計顏色選擇
+        stats_color_layout = QHBoxLayout()
+        stats_color_layout.addWidget(QLabel(t("stats_color")))
+        self.ui_stats_color_btn = QPushButton(t("choose_color"))
+        self.ui_stats_color_btn.setFixedHeight(30)
+        self.ui_stats_color = cfg.data.get("stats_color", "#969696")
+        self.ui_stats_color_btn.setStyleSheet(
+            f"background: {self.ui_stats_color}; color: white; font-weight: bold; border: 2px solid #333;")
+        self.ui_stats_color_btn.clicked.connect(self.pick_stats_color)
+        stats_color_layout.addWidget(self.ui_stats_color_btn)
+        statsf.addRow(stats_color_layout)
+
+        # 連接信號
+        self.ui_stats_x.valueChanged.connect(self.auto_apply)
+        self.ui_stats_y.valueChanged.connect(self.auto_apply)
+        self.ui_stats_font_size.valueChanged.connect(self.auto_apply)
+
         self.stats_label = QLabel(t("total_presses").format(cfg.data['total_presses']))
         statsf.addRow(self.stats_label)
 
@@ -1612,6 +1641,10 @@ class OLSettings(QWidget):
             "enable_combo": self.ui_combo_en.isChecked(),
             "combo_reset_time": self.ui_combo_reset.value(),
             "enable_stats": self.ui_stats_en.isChecked(),
+            "stats_pos_x": self.ui_stats_x.value(),  # 新增
+            "stats_pos_y": self.ui_stats_y.value(),  # 新增
+            "stats_font_size": self.ui_stats_font_size.value(),  # 新增
+            "stats_color": self.ui_stats_color,  # 新增
             "fps_limit": self.ui_fps.value(),
             "key_count": self.ui_cnt.value(),
             "keys": [btn.current_key for btn in self.keybind_buttons] if hasattr(self, 'keybind_buttons') else cfg.data[
@@ -1767,6 +1800,14 @@ class OLSettings(QWidget):
             # 同步更新標籤顏色
             if hasattr(self, 'difficulty_label'):
                 self.difficulty_label.setStyleSheet(f"font-weight: bold; color: {res.name()}; margin-top: 10px;")
+            self.auto_apply()
+
+    def pick_stats_color(self):
+        res = QColorDialog.getColor(QColor(self.ui_stats_color))
+        if res.isValid():
+            self.ui_stats_color = res.name()
+            self.ui_stats_color_btn.setStyleSheet(
+                f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
             self.auto_apply()
 
     def on_custom_window_size_changed(self):
