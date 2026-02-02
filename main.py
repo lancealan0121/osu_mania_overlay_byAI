@@ -14,7 +14,7 @@ from PySide6.QtGui import (QPainter, QColor, QBrush, QPen, QFont, QLinearGradien
                            QRadialGradient, QPainterPath)
 
 
-#  pyinstaller --onefile --windowed --clean --icon=icon.ico --add-data "languages;languages" main.py
+#  pyinstaller --onefile --windowed --icon=icon.ico --add-data "languages;languages" main.py
 #  made by yulun, yulun loves ai generated
 class TranslationManager:
     def __init__(self):
@@ -127,6 +127,20 @@ DEFAULT_CONFIG = {
     "toggle_settings_key": "f1",
     "use_custom_positions": False,
     "key_custom_positions": [],
+    "enable_osu_tracker": False,  # 是否啟用 osu! 追蹤
+    "show_song_info": True,  # 是否顯示歌曲資訊
+    "song_info_x": 10,  # 歌曲資訊 X 位置
+    "song_info_y": 80,  # 歌曲資訊 Y 位置
+    "song_info_size": 14,  # 歌曲資訊字體大小
+    "song_info_color": "#64C8FF",  # 歌曲名稱顏色（新增）
+    "song_difficulty_color": "#FFC864",  # 難度顏色（新增）
+    "song_no_playing_text": "無正在遊玩的歌曲",  # 無歌曲時顯示文字（新增）
+    "current_song": "",  # 當前歌曲
+    "current_artist": "",  # 當前藝術家
+    "current_difficulty": "",  # 當前難度
+    "custom_window_size": False,  # 是否使用自定義視窗大小
+    "window_width": 640,  # 自定義視窗寬度
+    "window_height": 700,  # 自定義視窗高度
 }
 
 
@@ -410,6 +424,10 @@ class OLOverlay(QWidget):
         self.dragging_key_index = -1
         self.drag_start_pos = QPointF(0, 0)
 
+        self.current_osu_song = ""
+        self.current_osu_artist = ""
+        self.current_osu_difficulty = ""
+
         self.setup_ui()
         self.timer = QTimer()
         self.timer.timeout.connect(self.tick)
@@ -419,6 +437,15 @@ class OLOverlay(QWidget):
             cfg.data["session_start"] = time.time()
 
         self.hide()
+
+    def update_osu_song(self, song_info):
+        """更新 osu! 歌曲資訊"""
+        self.current_osu_artist = song_info.get('artist', '')
+        self.current_osu_song = song_info.get('title', '')
+        self.current_osu_difficulty = song_info.get('difficulty', '')
+        cfg.data["current_artist"] = self.current_osu_artist
+        cfg.data["current_song"] = self.current_osu_song
+        cfg.data["current_difficulty"] = self.current_osu_difficulty
 
     def setup_ui(self):
         old_states = {}
@@ -450,8 +477,16 @@ class OLOverlay(QWidget):
         if len(cfg.data["key_custom_positions"]) > cfg.data["key_count"]:
             cfg.data["key_custom_positions"] = cfg.data["key_custom_positions"][:cfg.data["key_count"]]
 
+        # 修改：根據音符視覺化高度自動計算合適的視窗大小
+        # 但如果用戶有手動設定過視窗大小，則使用用戶設定
         w = (cfg.data["width"] + cfg.data["spacing"]) * cfg.data["key_count"] + 300
         h = cfg.data["vis_height"] + 300
+
+        # 檢查是否需要使用自定義視窗大小
+        if "custom_window_size" in cfg.data and cfg.data["custom_window_size"]:
+            w = cfg.data.get("window_width", w)
+            h = cfg.data.get("window_height", h)
+
         self.resize(w, h)
 
     def get_key_position(self, index):
@@ -619,6 +654,33 @@ class OLOverlay(QWidget):
                 int(session_time % 60)
             )
             painter.drawText(QRectF(10, 10, 400, 30), Qt.AlignLeft, stats_text)
+
+        if cfg.data.get("enable_osu_tracker", False) and cfg.data.get("show_song_info", True):
+            song_x = cfg.data.get("song_info_x", 10)
+            song_y = cfg.data.get("song_info_y", 80)
+            song_size = cfg.data.get("song_info_size", 14)
+
+            if self.current_osu_song or self.current_osu_artist:
+                # 顯示藝術家 - 歌曲名（使用自訂顏色）
+                painter.setPen(QColor(cfg.data.get("song_info_color", "#64C8FF")))
+                painter.setFont(QFont("Microsoft JhengHei UI", song_size, QFont.Bold))
+                song_text = f"♪ {self.current_osu_artist} - {self.current_osu_song}"
+                painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, song_text)
+
+                # 顯示難度（使用自訂顏色）
+                if self.current_osu_difficulty:
+                    painter.setPen(QColor(cfg.data.get("song_difficulty_color", "#FFC864")))
+                    painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
+                    diff_text = f"[{self.current_osu_difficulty}]"
+                    painter.drawText(QRectF(song_x, song_y + 25, self.width() - song_x - 10, 25), Qt.AlignLeft,
+                                     diff_text)
+            else:
+                # 沒有歌曲時顯示提示文字
+                painter.setPen(QColor(100, 100, 100))
+                painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
+                no_song_text = cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲")
+                painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, no_song_text)
+
 
         for idx, k in enumerate(self.keys_state):
             start_x, base_y = self.get_key_position(idx)
@@ -893,6 +955,44 @@ class OLSettings(QWidget):
         size_group.setLayout(lf)
         lay_main_layout.addWidget(size_group)
 
+        # 修改：背景視窗大小群組
+        window_size_group = QGroupBox(t("window_size_group"))
+        wsf = QFormLayout()
+
+        # 自動/手動切換選項
+        self.ui_custom_window_size = self.add_check(wsf, t("custom_window_size"),
+                                                    cfg.data.get("custom_window_size", False))
+        self.ui_custom_window_size.stateChanged.connect(self.on_custom_window_size_changed)
+
+        # 說明文字
+        window_size_note = QLabel(t("window_size_note"))
+        window_size_note.setStyleSheet("color: #888; font-size: 11px;")
+        window_size_note.setWordWrap(True)
+        wsf.addRow(window_size_note)
+
+        # 手動調整視窗大小
+        current_width = cfg.data.get("window_width", self.overlay.width())
+        current_height = cfg.data.get("window_height", self.overlay.height())
+
+        self.ui_window_width = self.add_spin(wsf, t("overlay_width"), 400, 3000, current_width)
+        self.ui_window_height = self.add_spin(wsf, t("overlay_height"), 300, 2000, current_height)
+
+        self.ui_window_width.valueChanged.connect(self.on_window_size_changed)
+        self.ui_window_height.valueChanged.connect(self.on_window_size_changed)
+
+        # 根據自動/手動狀態啟用/禁用控件
+        self.ui_window_width.setEnabled(cfg.data.get("custom_window_size", False))
+        self.ui_window_height.setEnabled(cfg.data.get("custom_window_size", False))
+
+        # 顯示建議大小
+        suggested_h = cfg.data["vis_height"] + 300
+        suggestion_label = QLabel(t("suggested_height").format(suggested_h))
+        suggestion_label.setStyleSheet("color: #4A90E2; font-size: 11px; font-style: italic;")
+        wsf.addRow(suggestion_label)
+
+        window_size_group.setLayout(wsf)
+        lay_main_layout.addWidget(window_size_group)
+
         # 位置設定群組
         position_group = QGroupBox(t("position_group"))
         pf = QFormLayout()
@@ -900,6 +1000,10 @@ class OLSettings(QWidget):
         reset_positions_btn.setStyleSheet("background: #4A90E2; color: white; padding: 8px; font-weight: bold;")
         reset_positions_btn.clicked.connect(self.reset_key_positions)
         pf.addRow(reset_positions_btn)
+        center_window_btn = QPushButton(t("center_window"))
+        center_window_btn.setStyleSheet("background: #E74C3C; color: white; padding: 8px; font-weight: bold;")
+        center_window_btn.clicked.connect(self.center_window_to_screen)
+        pf.addRow(center_window_btn)
 
         position_note = QLabel(t("position_note"))
         position_note.setStyleSheet("color: #888; font-size: 12px;")
@@ -1171,6 +1275,63 @@ class OLSettings(QWidget):
         stats_group.setLayout(statsf)
         combo_main_layout.addWidget(stats_group)
 
+        osu_group = QGroupBox(t("osu_tracker_group"))
+        osuf = QFormLayout()
+
+        # 啟用開關
+        self.ui_osu_tracker_en = self.add_check(osuf, t("enable_osu_tracker"),
+                                                cfg.data.get("enable_osu_tracker", False))
+        self.ui_show_song_info = self.add_check(osuf, t("show_song_info"), cfg.data.get("show_song_info", True))
+
+        # 字體大小
+        self.ui_song_info_size = self.add_spin(osuf, t("song_info_font_size"), 10, 40,
+                                               cfg.data.get("song_info_size", 14))
+
+        # 位置調整
+        self.ui_song_info_x = self.add_spin(osuf, t("song_info_x"), -1000, 2000, cfg.data.get("song_info_x", 10))
+        self.ui_song_info_y = self.add_spin(osuf, t("song_info_y"), -1000, 2000, cfg.data.get("song_info_y", 80))
+
+        # 新增：歌曲名稱顏色選擇
+        song_color_layout = QHBoxLayout()
+        song_color_layout.addWidget(QLabel(t("song_info_color")))
+        self.ui_song_info_color_btn = QPushButton(t("choose_color"))
+        self.ui_song_info_color_btn.setFixedHeight(30)
+        self.ui_song_info_color = cfg.data.get("song_info_color", "#64C8FF")
+        self.ui_song_info_color_btn.setStyleSheet(
+            f"background: {self.ui_song_info_color}; color: white; font-weight: bold; border: 2px solid #333;")
+        self.ui_song_info_color_btn.clicked.connect(self.pick_song_info_color)
+        song_color_layout.addWidget(self.ui_song_info_color_btn)
+        osuf.addRow(song_color_layout)
+
+        # 新增：難度顏色選擇
+        diff_color_layout = QHBoxLayout()
+        diff_color_layout.addWidget(QLabel(t("song_difficulty_color")))
+        self.ui_song_difficulty_color_btn = QPushButton(t("choose_color"))
+        self.ui_song_difficulty_color_btn.setFixedHeight(30)
+        self.ui_song_difficulty_color = cfg.data.get("song_difficulty_color", "#FFC864")
+        self.ui_song_difficulty_color_btn.setStyleSheet(
+            f"background: {self.ui_song_difficulty_color}; color: white; font-weight: bold; border: 2px solid #333;")
+        self.ui_song_difficulty_color_btn.clicked.connect(self.pick_song_difficulty_color)
+        diff_color_layout.addWidget(self.ui_song_difficulty_color_btn)
+        osuf.addRow(diff_color_layout)
+
+        # 新增：無歌曲時的顯示文字
+        self.ui_no_playing_text = QLineEdit(cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲"))
+        self.ui_no_playing_text.setPlaceholderText(t("no_playing_placeholder"))
+        self.ui_no_playing_text.textChanged.connect(self.auto_apply)
+        osuf.addRow(t("no_playing_text"), self.ui_no_playing_text)
+
+        # 連接信號
+        self.ui_osu_tracker_en.stateChanged.connect(self.auto_apply)
+        self.ui_show_song_info.stateChanged.connect(self.auto_apply)
+        self.ui_song_info_size.valueChanged.connect(self.auto_apply)
+        self.ui_song_info_x.valueChanged.connect(self.auto_apply)
+        self.ui_song_info_y.valueChanged.connect(self.auto_apply)
+
+        osuf.addRow(QLabel(t("osu_tracker_note")))
+        osu_group.setLayout(osuf)
+        combo_main_layout.addWidget(osu_group)
+
         # 按鍵計數顯示群組
         key_count_group = QGroupBox(t("key_count_group"))
         kcf = QFormLayout()
@@ -1335,6 +1496,24 @@ class OLSettings(QWidget):
         self.overlay.update()
         self.show_message(t("positions_reset"))
 
+    def center_window_to_screen(self):
+        """將 overlay 視窗移動到螢幕中央"""
+        screen_geometry = QApplication.primaryScreen().geometry()
+
+        # 計算螢幕中心位置
+        x = (screen_geometry.width() - self.overlay.width()) // 2
+        y = (screen_geometry.height() - self.overlay.height()) // 2
+
+        # 移動視窗
+        self.overlay.move(x, y)
+
+        # 保存新位置
+        cfg.data["window_x"] = x
+        cfg.data["window_y"] = y
+        cfg.save()
+
+        self.show_message(t("window_centered"))
+
     def auto_apply(self):
         anim_reverse = ["default", "wave", "pulse", "bounce", "elastic"]
         shape_reverse = ["rounded", "square", "circle", "hexagon"]
@@ -1401,6 +1580,16 @@ class OLSettings(QWidget):
             "key_count_color": self.ui_key_count_color,
             "auto_switch_max": self.ui_auto_switch.isChecked(),
             "switch_delay": self.ui_switch_delay.value(),
+
+            "enable_osu_tracker": self.ui_osu_tracker_en.isChecked(),
+            "show_song_info": self.ui_show_song_info.isChecked(),
+            "song_info_size": self.ui_song_info_size.value(),
+            "song_info_x": self.ui_song_info_x.value(),
+            "song_info_y": self.ui_song_info_y.value(),
+            "song_info_color": self.ui_song_info_color,  # 新增
+            "song_difficulty_color": self.ui_song_difficulty_color,  # 新增
+            "song_no_playing_text": self.ui_no_playing_text.text(),  # 新增
+            "custom_window_size": self.ui_custom_window_size.isChecked() if hasattr(self,'ui_custom_window_size') else False,
         })
 
         self.overlay.setup_ui()
@@ -1513,6 +1702,47 @@ class OLSettings(QWidget):
                 f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
             self.auto_apply()
 
+    def pick_song_info_color(self):
+        res = QColorDialog.getColor(QColor(self.ui_song_info_color))
+        if res.isValid():
+            self.ui_song_info_color = res.name()
+            self.ui_song_info_color_btn.setStyleSheet(
+                f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
+            self.auto_apply()
+
+    def pick_song_difficulty_color(self):
+        res = QColorDialog.getColor(QColor(self.ui_song_difficulty_color))
+        if res.isValid():
+            self.ui_song_difficulty_color = res.name()
+            self.ui_song_difficulty_color_btn.setStyleSheet(
+                f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
+            self.auto_apply()
+
+    def on_custom_window_size_changed(self):
+        is_custom = self.ui_custom_window_size.isChecked()
+        self.ui_window_width.setEnabled(is_custom)
+        self.ui_window_height.setEnabled(is_custom)
+        cfg.data["custom_window_size"] = is_custom
+
+        if not is_custom:
+            # 切換回自動時，立即重新計算視窗大小
+            self.overlay.setup_ui()
+        else:
+            # 切換到手動時，保存當前視窗大小
+            cfg.data["window_width"] = self.overlay.width()
+            cfg.data["window_height"] = self.overlay.height()
+            self.ui_window_width.setValue(self.overlay.width())
+            self.ui_window_height.setValue(self.overlay.height())
+
+    # 新增：視窗大小變更
+    def on_window_size_changed(self):
+        if cfg.data.get("custom_window_size", False):
+            new_width = self.ui_window_width.value()
+            new_height = self.ui_window_height.value()
+            cfg.data["window_width"] = new_width
+            cfg.data["window_height"] = new_height
+            self.overlay.resize(new_width, new_height)
+
     def reset_stats(self):
         cfg.data["total_presses"] = 0
         cfg.data["session_start"] = time.time()
@@ -1609,6 +1839,67 @@ class ToggleKeybindListener(QThread):
             keyboard.unhook(self.current_hook)
 
 
+class OsuTrackerThread(QThread):
+    """osu! 歌曲追蹤執行緒"""
+    song_changed = Signal(dict)  # 發送歌曲資訊變化信號
+
+    def __init__(self):
+        super().__init__()
+        self.running = True
+        self.current_song = None
+
+    def get_osu_window_title(self):
+        """獲取 osu! 視窗標題"""
+        try:
+            import win32gui
+
+            def callback(hwnd, titles):
+                if win32gui.IsWindowVisible(hwnd):
+                    title = win32gui.GetWindowText(hwnd)
+                    if title.startswith('osu!'):
+                        titles.append(title)
+                return True
+
+            titles = []
+            win32gui.EnumWindows(callback, titles)
+            return titles[0] if titles else None
+        except:
+            return None
+
+    def parse_song_info(self, title):
+        """解析歌曲資訊"""
+        import re
+        pattern = r"osu!\s*-\s*(.+?)\s*-\s*(.+?)\s*\[(.+?)\]"
+        match = re.search(pattern, title)
+
+        if match:
+            return {
+                'artist': match.group(1).strip(),
+                'title': match.group(2).strip(),
+                'difficulty': match.group(3).strip()
+            }
+        return None
+
+    def run(self):
+        while self.running:
+            try:
+                if cfg.data.get("enable_osu_tracker", False):
+                    title = self.get_osu_window_title()
+
+                    if title:
+                        song_info = self.parse_song_info(title)
+
+                        if song_info and song_info != self.current_song:
+                            self.current_song = song_info
+                            self.song_changed.emit(song_info)
+
+                self.msleep(1000)  # 每秒檢查一次
+            except:
+                self.msleep(1000)
+
+    def stop(self):
+        self.running = False
+
 class InputWorker(QThread):
     sig = Signal(str, bool)
 
@@ -1635,6 +1926,10 @@ if __name__ == "__main__":
     worker = InputWorker()
     worker.sig.connect(overlay.handle_input)
     worker.start()
+
+    osu_tracker = OsuTrackerThread()
+    osu_tracker.song_changed.connect(overlay.update_osu_song)
+    osu_tracker.start()
 
     settings = OLSettings(overlay)
 
