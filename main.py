@@ -88,13 +88,10 @@ class TranslationManager:
         }
         return [(code, lang_names.get(code, code)) for code in sorted(self.translations.keys())]
 
-
 translation_manager = TranslationManager()
-
 
 def t(key):
     return translation_manager.get(key)
-
 
 CONFIG_FILE = "osu_OL_v1_config.json"
 DEFAULT_CONFIG = {
@@ -1287,30 +1284,23 @@ class OLSettings(QWidget):
         osu_group = QGroupBox(t("osu_tracker_group"))
         osuf = QFormLayout()
 
-        # 啟用開關
         self.ui_osu_tracker_en = self.add_check(osuf, t("enable_osu_tracker"),
                                                 cfg.data.get("enable_osu_tracker", False))
 
-        # 分別控制歌曲名稱和難度的顯示
         self.ui_show_song_name = self.add_check(osuf, t("show_song_name"), cfg.data.get("show_song_name", True))
         self.ui_show_difficulty = self.add_check(osuf, t("show_difficulty"), cfg.data.get("show_difficulty", True))
 
-        # 字體大小（共用）
         self.ui_song_info_size = self.add_spin(osuf, t("song_info_font_size"), 10, 40,
                                                cfg.data.get("song_info_size", 14))
 
-        # === 歌曲名稱設定 ===
-        # 創建標籤並儲存為實例變數
         self.song_name_label = QLabel(t("song_name_settings"))
         self.song_name_label.setStyleSheet(
             f"font-weight: bold; color: {cfg.data.get('song_info_color', '#64C8FF')}; margin-top: 10px;")
         osuf.addRow(self.song_name_label)
 
-        # 歌曲名稱位置
         self.ui_song_name_x = self.add_spin(osuf, t("song_name_x"), -1000, 2000, cfg.data.get("song_name_x", 10))
         self.ui_song_name_y = self.add_spin(osuf, t("song_name_y"), -1000, 2000, cfg.data.get("song_name_y", 80))
 
-        # 歌曲名稱顏色選擇
         song_color_layout = QHBoxLayout()
         song_color_layout.addWidget(QLabel(t("song_info_color")))
         self.ui_song_info_color_btn = QPushButton(t("choose_color"))
@@ -1322,8 +1312,6 @@ class OLSettings(QWidget):
         song_color_layout.addWidget(self.ui_song_info_color_btn)
         osuf.addRow(song_color_layout)
 
-        # === 難度設定 ===
-        # 創建標籤並儲存為實例變數
         self.difficulty_label = QLabel(t("difficulty_settings"))
         self.difficulty_label.setStyleSheet(
             f"font-weight: bold; color: {cfg.data.get('song_difficulty_color', '#FFC864')}; margin-top: 10px;")
@@ -1394,7 +1382,6 @@ class OLSettings(QWidget):
         self.t_keys = QWidget()
         keys_main_layout = QVBoxLayout(self.t_keys)
 
-        # 按鍵數量設定群組
         count_group = QGroupBox(t("key_count_group"))
         count_layout = QHBoxLayout()
         count_layout.addWidget(QLabel(t("key_count")))
@@ -1407,7 +1394,6 @@ class OLSettings(QWidget):
         count_group.setLayout(count_layout)
         keys_main_layout.addWidget(count_group)
 
-        # 按鍵配置群組
         keys_config_group = QGroupBox(t("keys_config_group"))
         keys_config_layout = QVBoxLayout()
 
@@ -1533,14 +1519,11 @@ class OLSettings(QWidget):
         """將 overlay 視窗移動到螢幕中央"""
         screen_geometry = QApplication.primaryScreen().geometry()
 
-        # 計算螢幕中心位置
         x = (screen_geometry.width() - self.overlay.width()) // 2
         y = (screen_geometry.height() - self.overlay.height()) // 2
 
-        # 移動視窗
         self.overlay.move(x, y)
 
-        # 保存新位置
         cfg.data["window_x"] = x
         cfg.data["window_y"] = y
         cfg.save()
@@ -1880,15 +1863,15 @@ class ToggleKeybindListener(QThread):
         if self.current_hook is not None:
             keyboard.unhook(self.current_hook)
 
-
 class OsuTrackerThread(QThread):
     """osu! 歌曲追蹤執行緒"""
-    song_changed = Signal(dict)  # 發送歌曲資訊變化信號
+    song_changed = Signal(dict)
 
     def __init__(self):
         super().__init__()
         self.running = True
         self.current_song = None
+        self.no_song_timer = 0  # 添加這行：用於延遲切換
 
     def get_osu_window_title(self):
         """獲取 osu! 視窗標題"""
@@ -1933,9 +1916,29 @@ class OsuTrackerThread(QThread):
 
                         if song_info and song_info != self.current_song:
                             self.current_song = song_info
+                            self.no_song_timer = 0  # 重置計時器
                             self.song_changed.emit(song_info)
+                        elif not song_info and self.current_song is not None:
+                            self.no_song_timer += 1
+                            if self.no_song_timer >= 2:
+                                self.current_song = None
+                                self.song_changed.emit({
+                                    'artist': '',
+                                    'title': '',
+                                    'difficulty': ''
+                                })
+                    else:
+                        if self.current_song is not None:
+                            self.no_song_timer += 1
+                            if self.no_song_timer >= 2:
+                                self.current_song = None
+                                self.song_changed.emit({
+                                    'artist': '',
+                                    'title': '',
+                                    'difficulty': ''
+                                })
 
-                self.msleep(1000)  # 每秒檢查一次
+                self.msleep(1000)
             except:
                 self.msleep(1000)
 
@@ -1953,7 +1956,6 @@ class InputWorker(QThread):
         keyboard.hook(key_handler)
         while True:
             self.msleep(100)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -1977,7 +1979,6 @@ if __name__ == "__main__":
 
     toggle_listener = ToggleKeybindListener()
 
-
     def toggle_settings_window():
         if settings.isVisible():
             settings.hide()
@@ -1985,10 +1986,8 @@ if __name__ == "__main__":
             settings.show()
             settings.activateWindow()
 
-
     toggle_listener.toggle_signal.connect(toggle_settings_window)
     toggle_listener.start()
-
 
     def show_main_windows():
         overlay.show()
