@@ -3,7 +3,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 
 ## 🆕 Updates
 
-### Version 2.0 (February 2, 2026)
+### Version 1.1 (February 2, 2026)
 
 #### **New Features**
 - ✨ **osu! Song Tracker Integration**
