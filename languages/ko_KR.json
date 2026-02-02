@@ -171,5 +171,10 @@
   "kps_display": "{0} KPS",
   "max_display": "MAX: {0}",
   "stats_display": "합계: {0} | 시간: {1}분 {2}초",
-  "combo_display": "x{0}"
+  "combo_display": "x{0}",
+
+  "stats_x_offset": "통계 X 오프셋:",
+  "stats_y_offset": "통계 Y 오프셋:",
+  "stats_font_size": "통계 글꼴 크기:",
+  "stats_color": "통계 색상:"
 }
