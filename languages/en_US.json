@@ -140,7 +140,9 @@
   "song_info_font_size": "Song Info Font Size:",
   "song_info_color": "Song Name Color:",
   "song_difficulty_color": "Difficulty Color:",
-  "no_playing_text": "No Song Playing Text:",
+  "waiting_osu_text": "Waiting for osu! Text:",
+  "waiting_osu_placeholder": "e.g., Please launch osu! first...",
+  "no_playing_text": "No Playing Text:",
   "no_playing_placeholder": "e.g., Waiting for osu! to start playing...",
 
   "show_song_name": "Show Song Name",
