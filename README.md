@@ -55,7 +55,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 
 ### Customization
 - 🎨 Comprehensive settings interface with tabbed layout
-- 🌍 Multi-language support (Traditional Chinese, English, Japanese, Korean, Spanish, French, German, Russian, Portuguese, and more)
+- 🌍 Multi-language support
 - 🎮 Combo counter with customizable reset time
 - 📈 Statistics tracking (total presses, session time)
 - 🔧 Customizable key shapes (rounded, square, circle, hexagon)
