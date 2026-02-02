@@ -243,7 +243,6 @@ Place custom language JSON files in the `languages/` folder. Format:
 
 **osu! song info not showing:**
 - Make sure osu! is running
-- Make sure osu! version is "stable"
 - Check that "Enable osu! Song Tracker" is enabled
 - Verify you're actively playing a song (not in menu)
 
