@@ -274,7 +274,7 @@ Contributions are welcome! Feel free to:
 
 ---
 
-## 🔮 Planned Features
+## 🔮 ToDo
 
 - Audio visualizer integration
 - More particle effects
@@ -282,3 +282,4 @@ Contributions are welcome! Feel free to:
 - Profile system for quick setting switches
 - Replay file visualization
 - Performance optimizations
+- Optimize layout setting change logic
