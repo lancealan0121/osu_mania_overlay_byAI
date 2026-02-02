@@ -142,7 +142,8 @@
   "song_difficulty_color": "難易度カラー:",
   "no_playing_text": "楽曲未再生時のテキスト:",
   "no_playing_placeholder": "例: osu!の再生開始を待機中...",
-
+  "waiting_osu_text": "osu!待機テキスト:",
+  "waiting_osu_placeholder": "例: osu!を起動してください...",
   "show_song_name": "楽曲名を表示",
   "show_difficulty": "難易度を表示",
   "song_name_settings": "楽曲名設定",
