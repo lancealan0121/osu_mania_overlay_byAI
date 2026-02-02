@@ -142,6 +142,8 @@
   "song_difficulty_color": "難度顏色:",
   "no_playing_text": "無歌曲顯示文字:",
   "no_playing_placeholder": "例如: 等待 osu! 開始遊玩...",
+  "waiting_osu_text": "等待 osu! 開啟文字:",
+  "waiting_osu_placeholder": "例如: 請先啟動 osu!...",
 
   "show_song_name": "顯示歌曲名稱",
   "show_difficulty": "顯示難度",
