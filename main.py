@@ -127,20 +127,23 @@ DEFAULT_CONFIG = {
     "toggle_settings_key": "f1",
     "use_custom_positions": False,
     "key_custom_positions": [],
-    "enable_osu_tracker": False,  # 是否啟用 osu! 追蹤
-    "show_song_info": True,  # 是否顯示歌曲資訊
-    "song_info_x": 10,  # 歌曲資訊 X 位置
-    "song_info_y": 80,  # 歌曲資訊 Y 位置
-    "song_info_size": 14,  # 歌曲資訊字體大小
-    "song_info_color": "#64C8FF",  # 歌曲名稱顏色（新增）
-    "song_difficulty_color": "#FFC864",  # 難度顏色（新增）
-    "song_no_playing_text": "無正在遊玩的歌曲",  # 無歌曲時顯示文字（新增）
-    "current_song": "",  # 當前歌曲
-    "current_artist": "",  # 當前藝術家
-    "current_difficulty": "",  # 當前難度
-    "custom_window_size": False,  # 是否使用自定義視窗大小
-    "window_width": 640,  # 自定義視窗寬度
-    "window_height": 700,  # 自定義視窗高度
+    "enable_osu_tracker": False,
+    "show_song_name": True,
+    "show_difficulty": True,
+    "song_name_x": 10,
+    "song_name_y": 80,
+    "difficulty_x": 10,
+    "difficulty_y": 105,
+    "song_info_size": 14,
+    "song_info_color": "#64C8FF",
+    "song_difficulty_color": "#FFC864",
+    "song_no_playing_text": "無正在遊玩的歌曲",
+    "current_song": "",
+    "current_artist": "",
+    "current_difficulty": "",
+    "custom_window_size": False,
+    "window_width": 640,
+    "window_height": 700,
 }
 
 
@@ -655,30 +658,36 @@ class OLOverlay(QWidget):
             )
             painter.drawText(QRectF(10, 10, 400, 30), Qt.AlignLeft, stats_text)
 
-        if cfg.data.get("enable_osu_tracker", False) and cfg.data.get("show_song_info", True):
-            song_x = cfg.data.get("song_info_x", 10)
-            song_y = cfg.data.get("song_info_y", 80)
+        if cfg.data.get("enable_osu_tracker", False):
             song_size = cfg.data.get("song_info_size", 14)
 
-            if self.current_osu_song or self.current_osu_artist:
-                # 顯示藝術家 - 歌曲名（使用自訂顏色）
+            # 顯示歌曲名稱
+            if cfg.data.get("show_song_name", True) and (self.current_osu_song or self.current_osu_artist):
+                song_x = cfg.data.get("song_name_x", 10)
+                song_y = cfg.data.get("song_name_y", 80)
+
                 painter.setPen(QColor(cfg.data.get("song_info_color", "#64C8FF")))
                 painter.setFont(QFont("Microsoft JhengHei UI", song_size, QFont.Bold))
                 song_text = f"♪ {self.current_osu_artist} - {self.current_osu_song}"
                 painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, song_text)
 
-                # 顯示難度（使用自訂顏色）
-                if self.current_osu_difficulty:
-                    painter.setPen(QColor(cfg.data.get("song_difficulty_color", "#FFC864")))
-                    painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
-                    diff_text = f"[{self.current_osu_difficulty}]"
-                    painter.drawText(QRectF(song_x, song_y + 25, self.width() - song_x - 10, 25), Qt.AlignLeft,
-                                     diff_text)
-            else:
-                # 沒有歌曲時顯示提示文字
+            # 顯示難度
+            if cfg.data.get("show_difficulty", True) and self.current_osu_difficulty:
+                diff_x = cfg.data.get("difficulty_x", 10)
+                diff_y = cfg.data.get("difficulty_y", 105)
+
+                painter.setPen(QColor(cfg.data.get("song_difficulty_color", "#FFC864")))
+                painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
+                diff_text = f"[{self.current_osu_difficulty}]"
+                painter.drawText(QRectF(diff_x, diff_y, self.width() - diff_x - 10, 25), Qt.AlignLeft, diff_text)
+
+            # 沒有歌曲時顯示提示文字（只有當兩者都沒顯示時才顯示）
+            if not (self.current_osu_song or self.current_osu_artist) and not self.current_osu_difficulty:
                 painter.setPen(QColor(100, 100, 100))
                 painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
                 no_song_text = cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲")
+                song_x = cfg.data.get("song_name_x", 10)
+                song_y = cfg.data.get("song_name_y", 80)
                 painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, no_song_text)
 
 
@@ -1281,17 +1290,27 @@ class OLSettings(QWidget):
         # 啟用開關
         self.ui_osu_tracker_en = self.add_check(osuf, t("enable_osu_tracker"),
                                                 cfg.data.get("enable_osu_tracker", False))
-        self.ui_show_song_info = self.add_check(osuf, t("show_song_info"), cfg.data.get("show_song_info", True))
 
-        # 字體大小
+        # 分別控制歌曲名稱和難度的顯示
+        self.ui_show_song_name = self.add_check(osuf, t("show_song_name"), cfg.data.get("show_song_name", True))
+        self.ui_show_difficulty = self.add_check(osuf, t("show_difficulty"), cfg.data.get("show_difficulty", True))
+
+        # 字體大小（共用）
         self.ui_song_info_size = self.add_spin(osuf, t("song_info_font_size"), 10, 40,
                                                cfg.data.get("song_info_size", 14))
 
-        # 位置調整
-        self.ui_song_info_x = self.add_spin(osuf, t("song_info_x"), -1000, 2000, cfg.data.get("song_info_x", 10))
-        self.ui_song_info_y = self.add_spin(osuf, t("song_info_y"), -1000, 2000, cfg.data.get("song_info_y", 80))
+        # === 歌曲名稱設定 ===
+        # 創建標籤並儲存為實例變數
+        self.song_name_label = QLabel(t("song_name_settings"))
+        self.song_name_label.setStyleSheet(
+            f"font-weight: bold; color: {cfg.data.get('song_info_color', '#64C8FF')}; margin-top: 10px;")
+        osuf.addRow(self.song_name_label)
 
-        # 新增：歌曲名稱顏色選擇
+        # 歌曲名稱位置
+        self.ui_song_name_x = self.add_spin(osuf, t("song_name_x"), -1000, 2000, cfg.data.get("song_name_x", 10))
+        self.ui_song_name_y = self.add_spin(osuf, t("song_name_y"), -1000, 2000, cfg.data.get("song_name_y", 80))
+
+        # 歌曲名稱顏色選擇
         song_color_layout = QHBoxLayout()
         song_color_layout.addWidget(QLabel(t("song_info_color")))
         self.ui_song_info_color_btn = QPushButton(t("choose_color"))
@@ -1303,7 +1322,18 @@ class OLSettings(QWidget):
         song_color_layout.addWidget(self.ui_song_info_color_btn)
         osuf.addRow(song_color_layout)
 
-        # 新增：難度顏色選擇
+        # === 難度設定 ===
+        # 創建標籤並儲存為實例變數
+        self.difficulty_label = QLabel(t("difficulty_settings"))
+        self.difficulty_label.setStyleSheet(
+            f"font-weight: bold; color: {cfg.data.get('song_difficulty_color', '#FFC864')}; margin-top: 10px;")
+        osuf.addRow(self.difficulty_label)
+
+        # 難度位置
+        self.ui_difficulty_x = self.add_spin(osuf, t("difficulty_x"), -1000, 2000, cfg.data.get("difficulty_x", 10))
+        self.ui_difficulty_y = self.add_spin(osuf, t("difficulty_y"), -1000, 2000, cfg.data.get("difficulty_y", 105))
+
+        # 難度顏色選擇
         diff_color_layout = QHBoxLayout()
         diff_color_layout.addWidget(QLabel(t("song_difficulty_color")))
         self.ui_song_difficulty_color_btn = QPushButton(t("choose_color"))
@@ -1315,7 +1345,8 @@ class OLSettings(QWidget):
         diff_color_layout.addWidget(self.ui_song_difficulty_color_btn)
         osuf.addRow(diff_color_layout)
 
-        # 新增：無歌曲時的顯示文字
+        # 無歌曲時的顯示文字
+        osuf.addRow(QLabel(""))  # 分隔線
         self.ui_no_playing_text = QLineEdit(cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲"))
         self.ui_no_playing_text.setPlaceholderText(t("no_playing_placeholder"))
         self.ui_no_playing_text.textChanged.connect(self.auto_apply)
@@ -1323,12 +1354,14 @@ class OLSettings(QWidget):
 
         # 連接信號
         self.ui_osu_tracker_en.stateChanged.connect(self.auto_apply)
-        self.ui_show_song_info.stateChanged.connect(self.auto_apply)
+        self.ui_show_song_name.stateChanged.connect(self.auto_apply)
+        self.ui_show_difficulty.stateChanged.connect(self.auto_apply)
         self.ui_song_info_size.valueChanged.connect(self.auto_apply)
-        self.ui_song_info_x.valueChanged.connect(self.auto_apply)
-        self.ui_song_info_y.valueChanged.connect(self.auto_apply)
+        self.ui_song_name_x.valueChanged.connect(self.auto_apply)
+        self.ui_song_name_y.valueChanged.connect(self.auto_apply)
+        self.ui_difficulty_x.valueChanged.connect(self.auto_apply)
+        self.ui_difficulty_y.valueChanged.connect(self.auto_apply)
 
-        osuf.addRow(QLabel(t("osu_tracker_note")))
         osu_group.setLayout(osuf)
         combo_main_layout.addWidget(osu_group)
 
@@ -1582,10 +1615,13 @@ class OLSettings(QWidget):
             "switch_delay": self.ui_switch_delay.value(),
 
             "enable_osu_tracker": self.ui_osu_tracker_en.isChecked(),
-            "show_song_info": self.ui_show_song_info.isChecked(),
+            "show_song_name": self.ui_show_song_name.isChecked(),  # 新增
+            "show_difficulty": self.ui_show_difficulty.isChecked(),  # 新增
             "song_info_size": self.ui_song_info_size.value(),
-            "song_info_x": self.ui_song_info_x.value(),
-            "song_info_y": self.ui_song_info_y.value(),
+            "song_name_x": self.ui_song_name_x.value(),  # 新增
+            "song_name_y": self.ui_song_name_y.value(),  # 新增
+            "difficulty_x": self.ui_difficulty_x.value(),  # 新增
+            "difficulty_y": self.ui_difficulty_y.value(),  # 新增
             "song_info_color": self.ui_song_info_color,  # 新增
             "song_difficulty_color": self.ui_song_difficulty_color,  # 新增
             "song_no_playing_text": self.ui_no_playing_text.text(),  # 新增
@@ -1708,6 +1744,9 @@ class OLSettings(QWidget):
             self.ui_song_info_color = res.name()
             self.ui_song_info_color_btn.setStyleSheet(
                 f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
+            # 同步更新標籤顏色
+            if hasattr(self, 'song_name_label'):
+                self.song_name_label.setStyleSheet(f"font-weight: bold; color: {res.name()}; margin-top: 10px;")
             self.auto_apply()
 
     def pick_song_difficulty_color(self):
@@ -1716,6 +1755,9 @@ class OLSettings(QWidget):
             self.ui_song_difficulty_color = res.name()
             self.ui_song_difficulty_color_btn.setStyleSheet(
                 f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
+            # 同步更新標籤顏色
+            if hasattr(self, 'difficulty_label'):
+                self.difficulty_label.setStyleSheet(f"font-weight: bold; color: {res.name()}; margin-top: 10px;")
             self.auto_apply()
 
     def on_custom_window_size_changed(self):
