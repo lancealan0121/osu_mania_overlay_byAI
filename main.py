@@ -156,7 +156,7 @@ DEFAULT_CONFIG = {
     "settings_window_height": 650,
     "enable_tab_animation": True,
     "tab_animation_duration": 180,
-
+    "rounded_radius": 6,
     "particle_color_mode": "key",
     "particle_custom_color": "#FF69B4",
 }
@@ -598,7 +598,8 @@ class OLOverlay(QWidget):
             path.closeSubpath()
             painter.drawPath(path)
         else:
-            painter.drawRoundedRect(rect, 6, 6)
+            radius = cfg.data.get("rounded_radius", 6)
+            painter.drawRoundedRect(rect, radius, radius)
 
     def draw_particle(self, painter, particle):
         shape = cfg.data["particle_shape"]
@@ -1098,7 +1099,6 @@ class OLSettings(QWidget):
         self.scroll_target = 0
         self.scroll_speed = 0
 
-
     def eventFilter(self, obj, event):
         if obj == self.scroll_area.viewport() and event.type() == event.Type.Wheel:
             if not cfg.data.get("enable_smooth_scroll", True):
@@ -1344,6 +1344,9 @@ class OLSettings(QWidget):
         self.ui_key_shape.setCurrentIndex(shape_map.get(cfg.data["key_shape"], 0))
         self.ui_key_shape.currentIndexChanged.connect(self.auto_apply)
         pf.addRow(t("key_shape"), self.ui_key_shape)
+
+        self.ui_rounded_radius = self.add_slider(pf, t("rounded_radius"), 0, 50, cfg.data.get("rounded_radius", 6))
+        self.ui_rounded_radius.valueChanged.connect(self.auto_apply)
 
         self.ui_rotation = self.add_slider(pf, t("rotation_angle"), 0, 360, cfg.data["rotation_on_press"])
         self.ui_border = self.add_slider(pf, t("border_width"), 1, 20, cfg.data["border_width"])
@@ -2232,6 +2235,7 @@ class OLSettings(QWidget):
             "tab_animation_duration": self.ui_tab_anim_duration.value() if hasattr(self, 'ui_tab_anim_duration') else 180,
             "settings_window_width": self.ui_settings_width.value() if hasattr(self, 'ui_settings_width') else 980,
             "settings_window_height": self.ui_settings_height.value() if hasattr(self, 'ui_settings_height') else 650,
+            "rounded_radius": self.ui_rounded_radius.value(),
         })
 
         self.overlay.setup_ui()
