@@ -212,5 +212,42 @@
   "particle_custom_color": "사용자 지정 파티클 색상:",
   "glow_rainbow_speed": "글로우 무지개 속도:",
   "particle_rainbow_speed": "파티클 무지개 속도:",
-  "rounded_radius": "모서리 반경:"
+  "rounded_radius": "모서리 반경:",
+
+  "particle_image_group": "파티클 이미지 설정",
+  "particle_use_image": "이미지를 파티클로 사용",
+  "choose_particle_image": "파티클 이미지 선택",
+  "clear_particle_image": "이미지 제거",
+  "current_image": "현재 이미지:",
+  "no_image_selected": "이미지가 선택되지 않음",
+  "particle_image_scale": "이미지 크기:",
+  "particle_image_note": "팁: 투명 배경의 PNG 이미지를 권장하며, 32x32에서 128x128 픽셀 크기가 가장 좋습니다",
+  "particle_image_set": "✅ 파티클 이미지 설정됨: {0}",
+  "particle_image_cleared": "✅ 파티클 이미지 제거됨",
+
+  "key_image_group": "키 배경 이미지",
+  "key_use_image": "이미지를 키 배경으로 사용",
+  "choose_key_image": "키 배경 이미지 선택",
+  "clear_key_image": "키 배경 제거",
+  "key_image_scale_mode": "이미지 크기 조절 모드:",
+  "scale_stretch": "늘려서 채우기",
+  "scale_fit": "비율 유지 (여백 포함)",
+  "scale_crop": "비율 유지 (잘라내기)",
+  "key_image_opacity": "이미지 투명도:",
+  "key_image_blend_color": "키 색상과 혼합",
+  "key_image_note": "팁: 투명 배경의 PNG 이미지를 권장하며, 키 크기와 유사한 크기를 권장합니다",
+  "key_image_set": "✅ 키 배경 설정됨: {0}",
+  "key_image_cleared": "✅ 키 배경 이미지 제거됨",
+
+  "vis_image_group": "노트 시각화 이미지",
+  "vis_use_image": "이미지를 노트로 사용",
+  "choose_vis_image": "노트 이미지 선택",
+  "clear_vis_image": "노트 이미지 제거",
+  "vis_image_opacity": "노트 이미지 투명도:",
+  "vis_image_blend_gradient": "그라데이션 효과 오버레이",
+  "vis_image_note": "팁: 이미지는 노트 길이에 따라 세로로 늘어나므로, 반복 텍스처나 그라데이션 이미지를 권장합니다",
+  "vis_image_set": "✅ 노트 이미지 설정됨: {0}",
+  "vis_image_cleared": "✅ 노트 이미지 제거됨",
+
+  "shake_group": "진동 효과"
 }
