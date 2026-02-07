@@ -211,5 +211,6 @@
   "particle_color_custom": "自定义",
   "particle_custom_color": "自定义粒子颜色:",
   "glow_rainbow_speed": "光晕彩虹速度:",
-  "particle_rainbow_speed": "粒子彩虹速度:"
+  "particle_rainbow_speed": "粒子彩虹速度:",
+  "rounded_radius": "圆角半径:"
 }
