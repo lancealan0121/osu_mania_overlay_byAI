@@ -60,7 +60,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
   - Save custom default window size separate from current session
   - "Save as Default Size" button for persistent preferences
 
--UI Improvements
+- UI Improvements
 
   - Compact Design: Reduced bottom bar spacing
   
