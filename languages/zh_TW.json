@@ -211,5 +211,7 @@
   "settings_size_note": "說明:\n• 直接拖拉視窗邊緣調整大小，數值會自動同步\n• 調整滿意後，點擊綠色按鈕儲存為預設開啟大小",
 
   "glow_rainbow_speed": "光暈彩虹速度:",
-  "particle_rainbow_speed": "粒子彩虹速度:"
+  "particle_rainbow_speed": "粒子彩虹速度:",
+  "rounded_radius": "圓角半徑:"
 }
+
