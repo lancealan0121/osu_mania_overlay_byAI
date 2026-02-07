@@ -98,6 +98,12 @@
   "particle_circle": "圓形",
   "particle_square": "方形",
   "particle_star": "星形",
+  "particle_color_mode": "粒子顏色:",
+  "particle_color_key": "按鍵色",
+  "particle_color_white": "白色",
+  "particle_color_rainbow": "彩虹",
+  "particle_color_custom": "自訂",
+  "particle_custom_color": "自訂粒子顏色:",
 
   "glow_group": "光暈效果",
   "enable_glow": "啟用柔和光暈",
@@ -202,5 +208,8 @@
   "default_size_info": "目前預設: {0} x {1} (下次開啟程式時使用)",
   "save_as_default_size": "儲存為預設開啟大小",
   "default_size_saved": "✅ 已儲存為預設大小: {0} x {1} (下次開啟生效)",
-  "settings_size_note": "說明:\n• 直接拖拉視窗邊緣調整大小，數值會自動同步\n• 調整滿意後，點擊綠色按鈕儲存為預設開啟大小"
+  "settings_size_note": "說明:\n• 直接拖拉視窗邊緣調整大小，數值會自動同步\n• 調整滿意後，點擊綠色按鈕儲存為預設開啟大小",
+
+  "glow_rainbow_speed": "光暈彩虹速度:",
+  "particle_rainbow_speed": "粒子彩虹速度:"
 }
