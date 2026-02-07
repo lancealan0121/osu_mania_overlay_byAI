@@ -1811,6 +1811,25 @@ class OLSettings(QWidget):
         settings_size_group.setLayout(ssf)
         window_main_layout.addWidget(settings_size_group)
 
+        keybind_group = QGroupBox(t("tab_keybinds"))
+        keybindf = QFormLayout()
+
+        toggle_layout = QHBoxLayout()
+        toggle_layout.addWidget(QLabel(t("toggle_settings")))
+        self.ui_toggle_keybind = KeybindButton(cfg.data.get("toggle_settings_key", "f1"))
+        self.ui_toggle_keybind.keybind_set.connect(self.on_toggle_keybind_set)
+        toggle_layout.addWidget(self.ui_toggle_keybind)
+        toggle_layout.addStretch()
+        keybindf.addRow(toggle_layout)
+
+        keybind_note = QLabel(t("keybind_note"))
+        keybind_note.setStyleSheet("color: #888; font-size: 11px;")
+        keybind_note.setWordWrap(True)
+        keybindf.addRow(keybind_note)
+
+        keybind_group.setLayout(keybindf)
+        window_main_layout.addWidget(keybind_group)
+
         lang_group = QGroupBox(t("tab_language"))
         langf = QFormLayout()
 
