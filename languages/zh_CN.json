@@ -202,5 +202,14 @@
   "default_size_info": "当前默认: {0} x {1} (下次打开程序时使用)",
   "save_as_default_size": "保存为默认打开大小",
   "default_size_saved": "✅ 已保存为默认大小: {0} x {1} (下次打开生效)",
-  "settings_size_note": "说明:\n• 直接拖拉窗口边缘调整大小，数值会自动同步\n• 调整满意后，点击绿色按钮保存为默认打开大小"
+  "settings_size_note": "说明:\n• 直接拖拉窗口边缘调整大小，数值会自动同步\n• 调整满意后，点击绿色按钮保存为默认打开大小",
+
+  "particle_color_mode": "粒子颜色:",
+  "particle_color_key": "按键色",
+  "particle_color_white": "白色",
+  "particle_color_rainbow": "彩虹",
+  "particle_color_custom": "自定义",
+  "particle_custom_color": "自定义粒子颜色:",
+  "glow_rainbow_speed": "光晕彩虹速度:",
+  "particle_rainbow_speed": "粒子彩虹速度:"
 }
