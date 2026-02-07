@@ -211,5 +211,6 @@
   "particle_color_custom": "사용자 지정",
   "particle_custom_color": "사용자 지정 파티클 색상:",
   "glow_rainbow_speed": "글로우 무지개 속도:",
-  "particle_rainbow_speed": "파티클 무지개 속도:"
+  "particle_rainbow_speed": "파티클 무지개 속도:",
+  "rounded_radius": "모서리 반경:"
 }
