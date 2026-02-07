@@ -106,8 +106,10 @@ DEFAULT_CONFIG = {
     "enable_ripple": True, "ripple_speed": 5,
     "window_x": 100, "window_y": 100, "settings_x": 600, "settings_y": 100,
     "animation_style": "default", "key_shape": "rounded", "background_opacity": 0,
-    "key_background_opacity": 220,  # 新增這行
+    "key_background_opacity": 220,
     "enable_rainbow": False, "rainbow_speed": 5,
+    "glow_rainbow_speed": 5,
+    "particle_rainbow_speed": 5,
     "enable_trail": True, "trail_length": 5,
     "enable_shake": False, "shake_intensity": 5,
     "enable_combo": True, "combo_reset_time": 2.0,
@@ -116,10 +118,10 @@ DEFAULT_CONFIG = {
     "glow_color_mode": "key", "glow_custom_color": "#FF0099",
     "particle_shape": "circle", "particle_size_min": 2, "particle_size_max": 6,
     "enable_stats": True, "total_presses": 0, "session_start": 0,
-    "stats_pos_x": 10,  # 新增
-    "stats_pos_y": 10,  # 新增
-    "stats_font_size": 12,  # 新增
-    "stats_color": "#969696",  # 新增
+    "stats_pos_x": 10,
+    "stats_pos_y": 10,
+    "stats_font_size": 12,
+    "stats_color": "#969696",
     "show_key_count": True, "key_count_font_size": 12, "key_count_color": "#FFFFFF",
     "show_kps": True, "kps_color_change": True, "kps_custom_color": "#FFFFFF",
     "vis_gradient": True, "show_max_kps": True,
@@ -152,8 +154,11 @@ DEFAULT_CONFIG = {
     "smooth_scroll_speed": 0.3,
     "settings_window_width": 980,
     "settings_window_height": 650,
-    "enable_tab_animation": True,  # 新增
-    "tab_animation_duration": 180,  # 新增，單位：毫秒
+    "enable_tab_animation": True,
+    "tab_animation_duration": 180,
+
+    "particle_color_mode": "key",
+    "particle_custom_color": "#FF69B4",
 }
 
 
@@ -182,12 +187,16 @@ cfg = ConfigManager()
 
 
 class Particle:
-    def __init__(self, x, y, color):
+    def __init__(self, x, y, color, color_mode=None, custom_color=None):
         self.pos = QPointF(x, y)
         f = cfg.data["part_force"] / 10.0
         self.vel = QPointF(random.uniform(-f, f), random.uniform(-f * 1.5, -f * 0.5))
         self.life = 1.0
-        self.color = QColor(color)
+
+        self.base_color = QColor(color)
+        self.color_mode = color_mode
+        self.custom_color = custom_color
+
         self.size = random.uniform(cfg.data["particle_size_min"], cfg.data["particle_size_max"])
         self.rotation = random.uniform(0, 360)
         self.rot_speed = random.uniform(-10, 10)
@@ -242,8 +251,10 @@ class KeyState:
             if cfg.data["enable_vis"]:
                 self.active_notes.append({"y": 0, "h": 0, "done": False})
             if cfg.data["enable_part"]:
+                color_mode = cfg.data.get("particle_color_mode", "key")
+                custom_color = cfg.data.get("particle_custom_color", "#FF69B4")
                 for _ in range(cfg.data["part_count"]):
-                    self.particles.append(Particle(x_c, y_c, self.color))
+                    self.particles.append(Particle(x_c, y_c, self.color, color_mode, custom_color))
         else:
             self.is_pressed = True
 
@@ -430,6 +441,8 @@ class OLOverlay(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.keys_state, self.kps_buffer = [], []
         self.rainbow_hue = 0
+        self.particle_rainbow_hue = 0
+        self.glow_rainbow_hue = 0
         self.last_time = time.time()
         self.move(cfg.data["window_x"], cfg.data["window_y"])
         self.last_key_press_time = time.time()
@@ -452,7 +465,6 @@ class OLOverlay(QWidget):
         self.hide()
 
     def update_osu_song(self, song_info):
-        """更新 osu! 歌曲資訊"""
         self.current_osu_artist = song_info.get('artist', '')
         self.current_osu_song = song_info.get('title', '')
         self.current_osu_difficulty = song_info.get('difficulty', '')
@@ -490,12 +502,9 @@ class OLOverlay(QWidget):
         if len(cfg.data["key_custom_positions"]) > cfg.data["key_count"]:
             cfg.data["key_custom_positions"] = cfg.data["key_custom_positions"][:cfg.data["key_count"]]
 
-        # 修改：根據音符視覺化高度自動計算合適的視窗大小
-        # 但如果用戶有手動設定過視窗大小，則使用用戶設定
         w = (cfg.data["width"] + cfg.data["spacing"]) * cfg.data["key_count"] + 300
         h = cfg.data["vis_height"] + 300
 
-        # 檢查是否需要使用自定義視窗大小
         if "custom_window_size" in cfg.data and cfg.data["custom_window_size"]:
             w = cfg.data.get("window_width", w)
             h = cfg.data.get("window_height", h)
@@ -503,7 +512,6 @@ class OLOverlay(QWidget):
         self.resize(w, h)
 
     def get_key_position(self, index):
-        """獲取按鍵的位置（考慮自定義位置）"""
         kw, spacing = cfg.data["width"], cfg.data["spacing"]
         base_y = cfg.data["vis_height"] + 80
 
@@ -542,6 +550,12 @@ class OLOverlay(QWidget):
 
         if cfg.data["enable_rainbow"]:
             self.rainbow_hue = (self.rainbow_hue + cfg.data["rainbow_speed"] / 10.0) % 360
+
+        if cfg.data.get("particle_color_mode") == "rainbow":
+            self.particle_rainbow_hue = (self.particle_rainbow_hue + cfg.data.get("particle_rainbow_speed",5) / 10.0) % 360
+
+        if cfg.data.get("glow_color_mode") == "rainbow":
+            self.glow_rainbow_hue = (self.glow_rainbow_hue + cfg.data.get("glow_rainbow_speed", 5) / 10.0) % 360
 
         for k in self.keys_state: k.update(time_delta)
         self.update()
@@ -673,7 +687,6 @@ class OLOverlay(QWidget):
         if cfg.data.get("enable_osu_tracker", False):
             song_size = cfg.data.get("song_info_size", 14)
 
-            # 顯示歌曲名稱
             if cfg.data.get("show_song_name", True) and (self.current_osu_song or self.current_osu_artist):
                 song_x = cfg.data.get("song_name_x", 10)
                 song_y = cfg.data.get("song_name_y", 80)
@@ -683,7 +696,6 @@ class OLOverlay(QWidget):
                 song_text = f"♪ {self.current_osu_artist} - {self.current_osu_song}"
                 painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft, song_text)
 
-            # 顯示難度
             if cfg.data.get("show_difficulty", True) and self.current_osu_difficulty:
                 diff_x = cfg.data.get("difficulty_x", 10)
                 diff_y = cfg.data.get("difficulty_y", 105)
@@ -693,30 +705,27 @@ class OLOverlay(QWidget):
                 diff_text = f"[{self.current_osu_difficulty}]"
                 painter.drawText(QRectF(diff_x, diff_y, self.width() - diff_x - 10, 25), Qt.AlignLeft, diff_text)
 
-            # 根據 osu! 狀態顯示不同的提示文字
             if not (self.current_osu_song or self.current_osu_artist) and not self.current_osu_difficulty:
                 song_x = cfg.data.get("song_name_x", 10)
                 song_y = cfg.data.get("song_name_y", 80)
 
-                # 判斷是否檢測到 osu! 視窗
-                # 透過檢查 osu_tracker 執行緒的狀態來判斷
                 if hasattr(self, 'osu_window_detected'):
                     if self.osu_window_detected:
-                        # osu! 已開啟但沒在遊玩
+
                         painter.setPen(QColor(100, 100, 100))
                         painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
                         no_song_text = cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲")
                         painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft,
                                          no_song_text)
                     else:
-                        # osu! 未開啟
+
                         painter.setPen(QColor(150, 150, 150))
                         painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
                         waiting_text = cfg.data.get("song_waiting_osu_text", "等待 osu! 開啟...")
                         painter.drawText(QRectF(song_x, song_y, self.width() - song_x - 10, 30), Qt.AlignLeft,
                                          waiting_text)
                 else:
-                    # 初始狀態，顯示等待文字
+
                     painter.setPen(QColor(150, 150, 150))
                     painter.setFont(QFont("Microsoft JhengHei UI", song_size - 2))
                     waiting_text = cfg.data.get("song_waiting_osu_text", "等待 osu! 開啟...")
@@ -772,7 +781,7 @@ class OLOverlay(QWidget):
                 if glow_mode == "white":
                     glow_color = QColor(255, 255, 255)
                 elif glow_mode == "rainbow":
-                    glow_color = QColor.fromHsv(int(self.rainbow_hue), 255, 255)
+                    glow_color = QColor.fromHsv(int(self.glow_rainbow_hue), 255, 255)
                 elif glow_mode == "custom":
                     glow_color = QColor(cfg.data.get("glow_custom_color", "#FF0099"))
                 else:
@@ -787,8 +796,20 @@ class OLOverlay(QWidget):
                 painter.drawEllipse(QPointF(start_x + kw / 2, base_y + kh / 2), kw * spread, kw * spread)
 
             for p in k.particles:
-                pc = QColor(
-                    color if not cfg.data["enable_rainbow"] else QColor.fromHsv(int(self.rainbow_hue), 255, 255))
+                color_mode = p.color_mode if hasattr(p, 'color_mode') else cfg.data.get("particle_color_mode", "key")
+
+                if color_mode == "rainbow":
+
+                    pc = QColor.fromHsv(int(self.particle_rainbow_hue), 255, 255)
+                elif color_mode == "white":
+                    pc = QColor(255, 255, 255)
+                elif color_mode == "custom":
+                    custom = p.custom_color if hasattr(p, 'custom_color') else cfg.data.get("particle_custom_color",
+                                                                                            "#FF69B4")
+                    pc = QColor(custom)
+                else:
+                    pc = QColor(p.base_color if hasattr(p, 'base_color') else p.color)
+
                 pc.setAlpha(int(p.life * 255))
                 painter.setBrush(pc)
                 painter.setPen(Qt.NoPen)
@@ -922,7 +943,6 @@ class OLSettings(QWidget):
         self.overlay = overlay
         self.setWindowTitle(t("window_title"))
 
-        # 使用配置中的視窗大小
         self.resize(
             cfg.data.get("settings_window_width", 980),
             cfg.data.get("settings_window_height", 650)
@@ -931,24 +951,20 @@ class OLSettings(QWidget):
 
         self._programmatic_resize = False
 
-        # 添加這些屬性
         self.animation_running = False
         self.fade_out_animation = None
         self.fade_in_animation = None
 
-        # 主佈局
         main_lay = QVBoxLayout(self)
         main_lay.setContentsMargins(0, 0, 0, 0)
         main_lay.setSpacing(0)
 
-        # 創建滾動區域
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QScrollArea.NoFrame)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
-        # 設置平滑滾動樣式
         scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
@@ -1031,33 +1047,27 @@ class OLSettings(QWidget):
             }
         """)
 
-        # 啟用平滑滾動
         scroll_area.verticalScrollBar().setSingleStep(20)
 
-        # 創建內容容器
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(15, 15, 15, 15)
         content_layout.setSpacing(0)
 
-        # 標籤頁容器
         self.tabs = QTabWidget()
         self.tabs.currentChanged.connect(self.on_tab_changing)
         content_layout.addWidget(self.tabs)
 
-        # 將內容放入滾動區域
         scroll_area.setWidget(content_widget)
         main_lay.addWidget(scroll_area)
 
-        # 創建所有標籤頁
         self.create_all_tabs()
 
-        # 底部固定區域（保存按鈕和訊息）
         bottom_widget = QWidget()
-        bottom_widget.setStyleSheet("background-color: #1E1E1E; padding: 5px;")  # 10px → 5px
+        bottom_widget.setStyleSheet("background-color: #1E1E1E; padding: 5px;")
         bottom_layout = QVBoxLayout(bottom_widget)
-        bottom_layout.setContentsMargins(15, 5, 15, 5)  # 10, 10 → 5, 5
-        bottom_layout.setSpacing(3)  # 5 → 3
+        bottom_layout.setContentsMargins(15, 5, 15, 5)
+        bottom_layout.setSpacing(3)
 
         self.save_btn = QPushButton(t("save_button"))
         self.save_btn.setStyleSheet("""
@@ -1076,7 +1086,6 @@ class OLSettings(QWidget):
 
         main_lay.addWidget(bottom_widget)
 
-        # 安裝滾輪事件過濾器以實現平滑滾動
         scroll_area.viewport().installEventFilter(self)
         self.scroll_area = scroll_area
         self.smooth_scroll_timer = QTimer()
@@ -1086,29 +1095,22 @@ class OLSettings(QWidget):
 
 
     def eventFilter(self, obj, event):
-        """處理平滑滾動"""
         if obj == self.scroll_area.viewport() and event.type() == event.Type.Wheel:
-            # 檢查是否啟用平滑滾動
             if not cfg.data.get("enable_smooth_scroll", True):
-                return False  # 使用預設滾動
+                return False
 
-            # 獲取滾輪增量
             delta = event.angleDelta().y()
 
-            # 計算目標位置
             current_pos = self.scroll_area.verticalScrollBar().value()
-            scroll_amount = -delta  # 反轉方向以符合自然滾動
+            scroll_amount = -delta
             self.scroll_target = current_pos + scroll_amount
 
-            # 限制範圍
             max_scroll = self.scroll_area.verticalScrollBar().maximum()
             self.scroll_target = max(0, min(self.scroll_target, max_scroll))
 
-            # 設置滾動速度
             speed_factor = cfg.data.get("smooth_scroll_speed", 0.3)
-            self.scroll_speed = scroll_amount / 5  # 分5步完成
+            self.scroll_speed = scroll_amount / 5
 
-            # 啟動平滑滾動
             if not self.smooth_scroll_timer.isActive():
                 fps = cfg.data.get("smooth_scroll_fps", 60)
                 self.smooth_scroll_timer.start(int(1000 / fps))
@@ -1122,20 +1124,17 @@ class OLSettings(QWidget):
         current = self.scroll_area.verticalScrollBar().value()
         target = self.scroll_target
 
-        # 如果接近目標，直接設置並停止
         if abs(current - target) < 2:
             self.scroll_area.verticalScrollBar().setValue(int(target))
             self.smooth_scroll_timer.stop()
             return
 
-        # 使用緩動函數，速度可配置
         diff = target - current
         speed_factor = cfg.data.get("smooth_scroll_speed", 0.3)
-        step = diff * speed_factor  # 使用配置的速度
+        step = diff * speed_factor
 
         new_value = current + step
         self.scroll_area.verticalScrollBar().setValue(int(new_value))
-
 
     def on_language_changed(self, index):
         if not hasattr(self, 'language_codes') or index >= len(self.language_codes):
@@ -1192,36 +1191,27 @@ class OLSettings(QWidget):
         size_group.setLayout(lf)
         lay_main_layout.addWidget(size_group)
 
-        # 修改：背景視窗大小群組
         window_size_group = QGroupBox(t("window_size_group"))
         wsf = QFormLayout()
 
-        # 自動/手動切換選項
-        self.ui_custom_window_size = self.add_check(wsf, t("custom_window_size"),
-                                                    cfg.data.get("custom_window_size", False))
+        self.ui_custom_window_size = self.add_check(wsf, t("custom_window_size"),cfg.data.get("custom_window_size", False))
         self.ui_custom_window_size.stateChanged.connect(self.on_custom_window_size_changed)
 
-        # 說明文字
         window_size_note = QLabel(t("window_size_note"))
         window_size_note.setStyleSheet("color: #888; font-size: 11px;")
         window_size_note.setWordWrap(True)
         wsf.addRow(window_size_note)
 
-        # 手動調整視窗大小
         current_width = cfg.data.get("window_width", self.overlay.width())
         current_height = cfg.data.get("window_height", self.overlay.height())
 
         self.ui_window_width = self.add_spin(wsf, t("overlay_width"), 400, 3000, current_width)
         self.ui_window_height = self.add_spin(wsf, t("overlay_height"), 300, 2000, current_height)
-
         self.ui_window_width.valueChanged.connect(self.on_window_size_changed)
         self.ui_window_height.valueChanged.connect(self.on_window_size_changed)
-
-        # 根據自動/手動狀態啟用/禁用控件
         self.ui_window_width.setEnabled(cfg.data.get("custom_window_size", False))
         self.ui_window_height.setEnabled(cfg.data.get("custom_window_size", False))
 
-        # 顯示建議大小
         suggested_h = cfg.data["vis_height"] + 300
         suggestion_label = QLabel(t("suggested_height").format(suggested_h))
         suggestion_label.setStyleSheet("color: #4A90E2; font-size: 11px; font-style: italic;")
@@ -1230,7 +1220,6 @@ class OLSettings(QWidget):
         window_size_group.setLayout(wsf)
         lay_main_layout.addWidget(window_size_group)
 
-        # 位置設定群組
         position_group = QGroupBox(t("position_group"))
         pf = QFormLayout()
         reset_positions_btn = QPushButton(t("reset_key_positions"))
@@ -1387,6 +1376,40 @@ class OLSettings(QWidget):
         self.ui_part_size_min = self.add_dspin(paf, t("min_particle_size"), 0.5, 50, cfg.data["particle_size_min"])
         self.ui_part_size_max = self.add_dspin(paf, t("max_particle_size"), 0.5, 50, cfg.data["particle_size_max"])
 
+        self.ui_part_color_mode = QComboBox()
+        part_color_items = [t("particle_color_key"), t("particle_color_white"),
+                            t("particle_color_rainbow"), t("particle_color_custom")]
+        self.ui_part_color_mode.addItems(part_color_items)
+        part_color_map = {"key": 0, "white": 1, "rainbow": 2, "custom": 3}
+        self.ui_part_color_mode.setCurrentIndex(part_color_map.get(cfg.data.get("particle_color_mode", "key"), 0))
+        self.ui_part_color_mode.currentIndexChanged.connect(self.on_particle_color_mode_changed)
+        paf.addRow(t("particle_color_mode"), self.ui_part_color_mode)
+
+        self.ui_part_rainbow_speed = self.add_slider(paf, t("particle_rainbow_speed"), 1, 100,cfg.data.get("particle_rainbow_speed", 5))
+        self.ui_part_rainbow_speed.valueChanged.connect(self.auto_apply)
+
+        self.particle_rainbow_speed_widget = QWidget()
+        part_rainbow_layout = QVBoxLayout(self.particle_rainbow_speed_widget)
+        part_rainbow_layout.setContentsMargins(0, 0, 0, 0)
+        paf.addRow(self.particle_rainbow_speed_widget)
+        self.particle_rainbow_speed_widget.setVisible(cfg.data.get("particle_color_mode") == "rainbow")
+
+        part_custom_color_layout = QHBoxLayout()
+        part_custom_color_layout.addWidget(QLabel(t("particle_custom_color")))
+        self.ui_part_custom_color_btn = QPushButton(t("choose_color"))
+        self.ui_part_custom_color_btn.setFixedHeight(30)
+        self.ui_part_custom_color = cfg.data.get("particle_custom_color", "#FF69B4")
+        self.ui_part_custom_color_btn.setStyleSheet(
+            f"background: {self.ui_part_custom_color}; color: white; font-weight: bold; border: 2px solid #333;")
+        self.ui_part_custom_color_btn.clicked.connect(self.pick_particle_custom_color)
+        part_custom_color_layout.addWidget(self.ui_part_custom_color_btn)
+
+        self.particle_custom_widget = QWidget()
+        self.particle_custom_widget.setLayout(part_custom_color_layout)
+        paf.addRow(self.particle_custom_widget)
+
+        self.particle_custom_widget.setVisible(cfg.data.get("particle_color_mode", "key") == "custom")
+
         self.ui_part_size_min.valueChanged.connect(self.auto_apply)
         self.ui_part_size_max.valueChanged.connect(self.auto_apply)
 
@@ -1418,6 +1441,15 @@ class OLSettings(QWidget):
         self.ui_glow_mode.setCurrentIndex(glow_mode_map.get(cfg.data["glow_color_mode"], 0))
         self.ui_glow_mode.currentIndexChanged.connect(self.auto_apply)
         glow_layout.addRow(t("glow_color"), self.ui_glow_mode)
+
+        self.ui_glow_rainbow_speed = self.add_slider(glow_layout, t("glow_rainbow_speed"), 1, 100,cfg.data.get("glow_rainbow_speed", 5))
+        self.ui_glow_rainbow_speed.valueChanged.connect(self.auto_apply)
+
+        self.glow_rainbow_speed_widget = QWidget()
+        glow_rainbow_speed_layout = QVBoxLayout(self.glow_rainbow_speed_widget)
+        glow_rainbow_speed_layout.setContentsMargins(0, 0, 0, 0)
+        glow_layout.addRow(self.glow_rainbow_speed_widget)
+        self.glow_rainbow_speed_widget.setVisible(cfg.data.get("glow_color_mode") == "rainbow")
 
         glow_custom_layout = QHBoxLayout()
         glow_custom_layout.addWidget(QLabel(t("glow_custom_color")))
@@ -1485,7 +1517,6 @@ class OLSettings(QWidget):
         self.t_combo = QWidget()
         combo_main_layout = QVBoxLayout(self.t_combo)
 
-        # 連擊設定群組
         combo_group = QGroupBox(t("combo_group"))
         combof = QFormLayout()
         self.ui_combo_en = self.add_check(combof, t("enable_combo"), cfg.data["enable_combo"])
@@ -1496,19 +1527,16 @@ class OLSettings(QWidget):
         combo_group.setLayout(combof)
         combo_main_layout.addWidget(combo_group)
 
-        # 統計顯示群組
         stats_group = QGroupBox(t("stats_group"))
         statsf = QFormLayout()
         self.ui_stats_en = self.add_check(statsf, t("enable_stats"), cfg.data["enable_stats"])
         self.ui_stats_en.stateChanged.connect(self.auto_apply)
 
-        # 新增：統計位置和樣式設定
         self.ui_stats_x = self.add_spin(statsf, t("stats_x_offset"), -10000, 10000, cfg.data.get("stats_pos_x", 10))
         self.ui_stats_y = self.add_spin(statsf, t("stats_y_offset"), -10000, 10000, cfg.data.get("stats_pos_y", 10))
         self.ui_stats_font_size = self.add_spin(statsf, t("stats_font_size"), 8, 30,
                                                 cfg.data.get("stats_font_size", 12))
 
-        # 新增：統計顏色選擇
         stats_color_layout = QHBoxLayout()
         stats_color_layout.addWidget(QLabel(t("stats_color")))
         self.ui_stats_color_btn = QPushButton(t("choose_color"))
@@ -1520,7 +1548,6 @@ class OLSettings(QWidget):
         stats_color_layout.addWidget(self.ui_stats_color_btn)
         statsf.addRow(stats_color_layout)
 
-        # 連接信號
         self.ui_stats_x.valueChanged.connect(self.auto_apply)
         self.ui_stats_y.valueChanged.connect(self.auto_apply)
         self.ui_stats_font_size.valueChanged.connect(self.auto_apply)
@@ -1571,11 +1598,9 @@ class OLSettings(QWidget):
             f"font-weight: bold; color: {cfg.data.get('song_difficulty_color', '#FFC864')}; margin-top: 10px;")
         osuf.addRow(self.difficulty_label)
 
-        # 難度位置
         self.ui_difficulty_x = self.add_spin(osuf, t("difficulty_x"), -1000, 2000, cfg.data.get("difficulty_x", 10))
         self.ui_difficulty_y = self.add_spin(osuf, t("difficulty_y"), -1000, 2000, cfg.data.get("difficulty_y", 105))
 
-        # 難度顏色選擇
         diff_color_layout = QHBoxLayout()
         diff_color_layout.addWidget(QLabel(t("song_difficulty_color")))
         self.ui_song_difficulty_color_btn = QPushButton(t("choose_color"))
@@ -1587,19 +1612,17 @@ class OLSettings(QWidget):
         diff_color_layout.addWidget(self.ui_song_difficulty_color_btn)
         osuf.addRow(diff_color_layout)
 
-        osuf.addRow(QLabel(""))  # 分隔線
+        osuf.addRow(QLabel(""))
         self.ui_no_playing_text = QLineEdit(cfg.data.get("song_no_playing_text", "無正在遊玩的歌曲"))
         self.ui_no_playing_text.setPlaceholderText(t("no_playing_placeholder"))
         self.ui_no_playing_text.textChanged.connect(self.auto_apply)
         osuf.addRow(t("no_playing_text"), self.ui_no_playing_text)
 
-        # 新增：等待 osu! 開啟的顯示文字
         self.ui_waiting_osu_text = QLineEdit(cfg.data.get("song_waiting_osu_text", "等待 osu! 開啟..."))
         self.ui_waiting_osu_text.setPlaceholderText(t("waiting_osu_placeholder"))
         self.ui_waiting_osu_text.textChanged.connect(self.auto_apply)
         osuf.addRow(t("waiting_osu_text"), self.ui_waiting_osu_text)
 
-        # 連接信號
         self.ui_osu_tracker_en.stateChanged.connect(self.auto_apply)
         self.ui_show_song_name.stateChanged.connect(self.auto_apply)
         self.ui_show_difficulty.stateChanged.connect(self.auto_apply)
@@ -1612,7 +1635,6 @@ class OLSettings(QWidget):
         osu_group.setLayout(osuf)
         combo_main_layout.addWidget(osu_group)
 
-        # 按鍵計數顯示群組
         key_count_group = QGroupBox(t("key_count_group"))
         kcf = QFormLayout()
         self.ui_show_key_count = self.add_check(kcf, t("show_key_count"), cfg.data["show_key_count"])
@@ -1676,7 +1698,6 @@ class OLSettings(QWidget):
         self.t_window = QWidget()
         window_main_layout = QVBoxLayout(self.t_window)
 
-        # 進階設定群組
         adv_group = QGroupBox(t("tab_advanced"))
         advf = QFormLayout()
         self.ui_fps = self.add_spin(advf, t("fps_limit"), 30, 500, cfg.data["fps_limit"])
@@ -1685,7 +1706,6 @@ class OLSettings(QWidget):
         adv_group.setLayout(advf)
         window_main_layout.addWidget(adv_group)
 
-        # 滾動設定群組
         scroll_group = QGroupBox(t("scroll_settings"))
         scrollf = QFormLayout()
 
@@ -1701,7 +1721,6 @@ class OLSettings(QWidget):
         scroll_group.setLayout(scrollf)
         window_main_layout.addWidget(scroll_group)
 
-        # 標籤頁動畫設定群組
         tab_anim_group = QGroupBox(t("tab_animation_settings"))
         tabf = QFormLayout()
 
@@ -1713,10 +1732,8 @@ class OLSettings(QWidget):
                                                   cfg.data.get("tab_animation_duration", 180))
         self.ui_tab_anim_duration.valueChanged.connect(self.on_tab_animation_changed)
 
-        # 添加說明
         tabf.addRow(QLabel(t("tab_animation_note")))
 
-        # 添加預設值按鈕
         preset_layout = QHBoxLayout()
         fast_btn = QPushButton(t("preset_fast"))
         fast_btn.clicked.connect(lambda: self.set_tab_animation_preset(100))
@@ -1743,11 +1760,9 @@ class OLSettings(QWidget):
         tab_anim_group.setLayout(tabf)
         window_main_layout.addWidget(tab_anim_group)
 
-        # 設定視窗大小群組
         settings_size_group = QGroupBox(t("settings_window_size"))
         ssf = QFormLayout()
 
-        # 當前視窗大小（即時顯示）
         current_size_label = QLabel(t("current_window_size"))
         current_size_label.setStyleSheet("color: #4A90E2; font-weight: bold;")
         ssf.addRow(current_size_label)
@@ -1755,20 +1770,16 @@ class OLSettings(QWidget):
         self.ui_settings_width = self.add_spin(ssf, t("settings_width"), 800, 1920, self.width())
         self.ui_settings_height = self.add_spin(ssf, t("settings_height"), 500, 1200, self.height())
 
-        # 新增：連接信號以即時套用大小
         self.ui_settings_width.valueChanged.connect(self.on_settings_size_changed)
         self.ui_settings_height.valueChanged.connect(self.on_settings_size_changed)
 
-        # 說明提示
         size_tip = QLabel(t("size_tip"))
         size_tip.setStyleSheet("color: #888; font-size: 11px; font-style: italic;")
         size_tip.setWordWrap(True)
         ssf.addRow(size_tip)
 
-        # 分隔線
         ssf.addRow(QLabel(""))
 
-        # 預設視窗大小（從配置讀取）
         default_size_label = QLabel(t("default_window_size"))
         default_size_label.setStyleSheet("color: #E67E22; font-weight: bold;")
         ssf.addRow(default_size_label)
@@ -1780,9 +1791,8 @@ class OLSettings(QWidget):
         default_info.setStyleSheet("color: #95A5A6; font-size: 11px;")
         default_info.setWordWrap(True)
         ssf.addRow(default_info)
-        self.default_size_info_label = default_info  # 保存引用以便更新
+        self.default_size_info_label = default_info
 
-        # 儲存為預設大小按鈕 - 改為綠色
         save_as_default_btn = QPushButton(t("save_as_default_size"))
         save_as_default_btn.setStyleSheet("background: #27AE60; color: white; padding: 8px; font-weight: bold;")
         save_as_default_btn.clicked.connect(self.save_as_default_size)
@@ -1824,7 +1834,6 @@ class OLSettings(QWidget):
         self.tabs.addTab(self.t_window, t("tab_window"))
 
     def on_settings_size_changed(self):
-        """設定視窗大小變更時即時套用"""
         if not hasattr(self, '_programmatic_resize') or not self._programmatic_resize:
             new_width = self.ui_settings_width.value()
             new_height = self.ui_settings_height.value()
@@ -1834,23 +1843,19 @@ class OLSettings(QWidget):
             self._programmatic_resize = False
 
     def on_smooth_scroll_changed(self):
-        """平滑滾動開關變更"""
         cfg.data["enable_smooth_scroll"] = self.ui_smooth_scroll.isChecked()
         if not cfg.data["enable_smooth_scroll"]:
             self.smooth_scroll_timer.stop()
 
     def on_scroll_settings_changed(self):
-        """滾動設定變更"""
         cfg.data["smooth_scroll_fps"] = self.ui_scroll_fps.value()
         cfg.data["smooth_scroll_speed"] = self.ui_scroll_speed.value()
 
     def on_tab_animation_changed(self):
-        """標籤頁動畫設定變更"""
         cfg.data["enable_tab_animation"] = self.ui_tab_animation.isChecked()
         cfg.data["tab_animation_duration"] = self.ui_tab_anim_duration.value()
 
     def set_tab_animation_preset(self, duration):
-        """設置標籤頁動畫預設值"""
         self.ui_tab_anim_duration.setValue(duration)
         cfg.data["tab_animation_duration"] = duration
 
@@ -1859,7 +1864,6 @@ class OLSettings(QWidget):
         self.show_message(t("preset_applied").format(preset_name))
 
     def apply_settings_window_size(self):
-        """立即套用視窗大小（用於手動輸入數值後）"""
         new_width = self.ui_settings_width.value()
         new_height = self.ui_settings_height.value()
 
@@ -1870,7 +1874,6 @@ class OLSettings(QWidget):
         self.show_message(t("settings_size_applied").format(new_width, new_height))
 
     def update_to_current_size(self):
-        """將數值更新為當前視窗大小"""
         current_width = self.width()
         current_height = self.height()
 
@@ -1880,7 +1883,6 @@ class OLSettings(QWidget):
         self.show_message(t("current_size_updated").format(current_width, current_height))
 
     def save_as_default_size(self):
-        """儲存當前數值為預設開啟大小"""
         new_width = self.ui_settings_width.value()
         new_height = self.ui_settings_height.value()
 
@@ -1888,7 +1890,6 @@ class OLSettings(QWidget):
         cfg.data["settings_window_height"] = new_height
         cfg.save()
 
-        # 更新預設大小顯示
         if hasattr(self, 'default_size_info_label'):
             self.default_size_info_label.setText(
                 t("default_size_info").format(new_width, new_height)
@@ -1897,12 +1898,10 @@ class OLSettings(QWidget):
         self.show_message(t("default_size_saved").format(new_width, new_height))
 
     def resizeEvent(self, event):
-        """視窗大小改變時即時更新顯示"""
         super().resizeEvent(event)
 
-        # 如果 UI 已經初始化，即時更新數值顯示
         if hasattr(self, 'ui_settings_width') and hasattr(self, 'ui_settings_height'):
-            # 只在不是程式觸發的調整時更新（避免遞迴）
+
             if not hasattr(self, '_programmatic_resize') or not self._programmatic_resize:
                 self.ui_settings_width.blockSignals(True)
                 self.ui_settings_height.blockSignals(True)
@@ -1914,16 +1913,17 @@ class OLSettings(QWidget):
                 self.ui_settings_height.blockSignals(False)
 
     def closeEvent(self, event):
-        """關閉時只儲存視窗位置，不改變預設大小"""
+
         cfg.data["settings_x"] = self.pos().x()
         cfg.data["settings_y"] = self.pos().y()
-        # 注意：這裡不儲存當前大小為預設大小
-        # 只有點擊「儲存為預設大小」才會改變預設值
+
         cfg.save()
         event.accept()
 
     def on_glow_mode_changed(self, index):
         self.glow_custom_widget.setVisible(index == 3)
+        if hasattr(self, 'glow_rainbow_speed_widget'):
+            self.glow_rainbow_speed_widget.setVisible(index == 2)
         self.auto_apply()
 
     def pick_glow_custom_color(self):
@@ -1934,12 +1934,25 @@ class OLSettings(QWidget):
                 f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
             self.auto_apply()
 
+    def on_particle_color_mode_changed(self, index):
+        self.particle_custom_widget.setVisible(index == 3)
+        if hasattr(self, 'particle_rainbow_speed_widget'):
+            self.particle_rainbow_speed_widget.setVisible(index == 2)
+        self.auto_apply()
+
+    def pick_particle_custom_color(self):
+        res = QColorDialog.getColor(QColor(self.ui_part_custom_color))
+        if res.isValid():
+            self.ui_part_custom_color = res.name()
+            self.ui_part_custom_color_btn.setStyleSheet(
+                f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
+            self.auto_apply()
+
     def on_toggle_keybind_set(self, key):
         cfg.data["toggle_settings_key"] = key
         self.auto_apply()
 
     def on_key_count_changed(self, new_count):
-        """處理按鍵數量變化"""
         old_count = cfg.data["key_count"]
 
         while len(cfg.data["keys"]) < new_count:
@@ -1970,7 +1983,6 @@ class OLSettings(QWidget):
         self.show_message(t("positions_reset"))
 
     def center_window_to_screen(self):
-        """將 overlay 視窗移動到螢幕中央"""
         screen_geometry = QApplication.primaryScreen().geometry()
 
         x = (screen_geometry.width() - self.overlay.width()) // 2
@@ -1985,8 +1997,7 @@ class OLSettings(QWidget):
         self.show_message(t("window_centered"))
 
     def on_tab_changing(self, new_index):
-        """標籤頁切換時觸發動畫 - 改進版本，支援嵌套 widget"""
-        # 檢查是否啟用動畫
+
         if not cfg.data.get("enable_tab_animation", True):
             self.current_tab_index = new_index
             return
@@ -2009,45 +2020,39 @@ class OLSettings(QWidget):
         new_widget = self.tabs.widget(new_index)
 
         if old_widget and new_widget:
-            # 獲取動畫時長
+
             duration = cfg.data.get("tab_animation_duration", 180)
 
-            # 為主 widget 創建效果
             old_effect = QGraphicsOpacityEffect(old_widget)
             new_effect = QGraphicsOpacityEffect(new_widget)
             old_widget.setGraphicsEffect(old_effect)
             new_widget.setGraphicsEffect(new_effect)
 
-            # 額外處理：如果 widget 包含 QScrollArea，也為其內容添加效果
             def apply_effect_to_scroll_areas(widget, effect_opacity):
                 for child in widget.findChildren(QScrollArea):
                     scroll_widget = child.widget()
                     if scroll_widget:
-                        # 為 scroll area 的內容創建獨立的透明度效果
+
                         scroll_effect = QGraphicsOpacityEffect(scroll_widget)
                         scroll_widget.setGraphicsEffect(scroll_effect)
                         scroll_effect.setOpacity(effect_opacity)
 
-            # 為舊標籤頁的 scroll area 設置初始透明度
             apply_effect_to_scroll_areas(old_widget, 1.0)
-            # 為新標籤頁的 scroll area 設置初始透明度
+
             apply_effect_to_scroll_areas(new_widget, 0.0)
 
-            # 舊標籤頁淡出
             self.fade_out_animation = QPropertyAnimation(old_effect, b"opacity")
             self.fade_out_animation.setDuration(duration)
             self.fade_out_animation.setStartValue(1.0)
             self.fade_out_animation.setEndValue(0.0)
             self.fade_out_animation.setEasingCurve(QEasingCurve.InOutCubic)
 
-            # 新標籤頁淡入
             self.fade_in_animation = QPropertyAnimation(new_effect, b"opacity")
             self.fade_in_animation.setDuration(duration)
             self.fade_in_animation.setStartValue(0.0)
             self.fade_in_animation.setEndValue(1.0)
             self.fade_in_animation.setEasingCurve(QEasingCurve.InOutCubic)
 
-            # 同步更新 scroll area 的透明度
             def sync_scroll_opacity(value, widget):
                 for child in widget.findChildren(QScrollArea):
                     scroll_widget = child.widget()
@@ -2063,7 +2068,7 @@ class OLSettings(QWidget):
 
             def on_animation_finished():
                 self.animation_running = False
-                # 清理所有圖形效果
+
                 old_widget.setGraphicsEffect(None)
                 new_widget.setGraphicsEffect(None)
                 for child in old_widget.findChildren(QScrollArea):
@@ -2075,7 +2080,6 @@ class OLSettings(QWidget):
 
             self.fade_in_animation.finished.connect(on_animation_finished)
 
-            # 同時開始兩個動畫
             self.fade_out_animation.start()
             self.fade_in_animation.start()
 
@@ -2083,6 +2087,7 @@ class OLSettings(QWidget):
         anim_reverse = ["default", "wave", "pulse", "bounce", "elastic"]
         shape_reverse = ["rounded", "square", "circle", "hexagon"]
         part_shape_reverse = ["circle", "square", "star"]
+        part_color_reverse = ["key", "white", "rainbow", "custom"]
 
         cfg.data.update({
             "width": self.ui_w.value(),
@@ -2114,6 +2119,8 @@ class OLSettings(QWidget):
             "part_force": self.ui_part_f.value(),
             "part_decay": self.ui_part_d.value(),
             "particle_shape": part_shape_reverse[self.ui_part_shape.currentIndex()],
+            "particle_color_mode": part_color_reverse[self.ui_part_color_mode.currentIndex()],
+            "particle_custom_color": self.ui_part_custom_color,
             "particle_size_min": self.ui_part_size_min.value(),
             "particle_size_max": self.ui_part_size_max.value(),
             "enable_glow": self.ui_glow_en.isChecked(),
@@ -2129,6 +2136,8 @@ class OLSettings(QWidget):
             "vis_gradient": self.ui_vis_gradient.isChecked(),
             "enable_rainbow": self.ui_rainbow_en.isChecked(),
             "rainbow_speed": self.ui_rainbow_speed.value(),
+            "glow_rainbow_speed": self.ui_glow_rainbow_speed.value() if hasattr(self, 'ui_glow_rainbow_speed') else 5,
+            "particle_rainbow_speed": self.ui_part_rainbow_speed.value() if hasattr(self,'ui_part_rainbow_speed') else 5,
             "enable_trail": self.ui_trail_en.isChecked(),
             "trail_length": self.ui_trail_len.value(),
             "enable_shake": self.ui_shake_en.isChecked(),
@@ -2136,10 +2145,10 @@ class OLSettings(QWidget):
             "enable_combo": self.ui_combo_en.isChecked(),
             "combo_reset_time": self.ui_combo_reset.value(),
             "enable_stats": self.ui_stats_en.isChecked(),
-            "stats_pos_x": self.ui_stats_x.value(),  # 新增
-            "stats_pos_y": self.ui_stats_y.value(),  # 新增
-            "stats_font_size": self.ui_stats_font_size.value(),  # 新增
-            "stats_color": self.ui_stats_color,  # 新增
+            "stats_pos_x": self.ui_stats_x.value(),
+            "stats_pos_y": self.ui_stats_y.value(),
+            "stats_font_size": self.ui_stats_font_size.value(),
+            "stats_color": self.ui_stats_color,
             "fps_limit": self.ui_fps.value(),
             "key_count": self.ui_cnt.value(),
             "keys": [btn.current_key for btn in self.keybind_buttons] if hasattr(self, 'keybind_buttons') else cfg.data[
@@ -2151,15 +2160,15 @@ class OLSettings(QWidget):
             "auto_switch_max": self.ui_auto_switch.isChecked(),
             "switch_delay": self.ui_switch_delay.value(),
             "enable_osu_tracker": self.ui_osu_tracker_en.isChecked(),
-            "show_song_name": self.ui_show_song_name.isChecked(),  # 新增
-            "show_difficulty": self.ui_show_difficulty.isChecked(),  # 新增
+            "show_song_name": self.ui_show_song_name.isChecked(),
+            "show_difficulty": self.ui_show_difficulty.isChecked(),
             "song_info_size": self.ui_song_info_size.value(),
-            "song_name_x": self.ui_song_name_x.value(),  # 新增
-            "song_name_y": self.ui_song_name_y.value(),  # 新增
-            "difficulty_x": self.ui_difficulty_x.value(),  # 新增
-            "difficulty_y": self.ui_difficulty_y.value(),  # 新增
-            "song_info_color": self.ui_song_info_color,  # 新增
-            "song_difficulty_color": self.ui_song_difficulty_color,  # 新增
+            "song_name_x": self.ui_song_name_x.value(),
+            "song_name_y": self.ui_song_name_y.value(),
+            "difficulty_x": self.ui_difficulty_x.value(),
+            "difficulty_y": self.ui_difficulty_y.value(),
+            "song_info_color": self.ui_song_info_color,
+            "song_difficulty_color": self.ui_song_difficulty_color,
             "custom_window_size": self.ui_custom_window_size.isChecked() if hasattr(self,'ui_custom_window_size') else False,
             "song_no_playing_text": self.ui_no_playing_text.text(),
             "song_waiting_osu_text": self.ui_waiting_osu_text.text(),
@@ -2169,7 +2178,7 @@ class OLSettings(QWidget):
             "enable_tab_animation": self.ui_tab_animation.isChecked() if hasattr(self, 'ui_tab_animation') else True,
             "tab_animation_duration": self.ui_tab_anim_duration.value() if hasattr(self, 'ui_tab_anim_duration') else 180,
             "settings_window_width": self.ui_settings_width.value() if hasattr(self, 'ui_settings_width') else 980,
-            "settings_window_height": self.ui_settings_height.value() if hasattr(self, 'ui_settings_height') else 650
+            "settings_window_height": self.ui_settings_height.value() if hasattr(self, 'ui_settings_height') else 650,
         })
 
         self.overlay.setup_ui()
@@ -2195,6 +2204,19 @@ class OLSettings(QWidget):
         s = QSlider(Qt.Horizontal)
         s.setRange(mn, mx)
         s.setValue(v)
+        s.setSingleStep(1)
+        s.setPageStep(10)
+
+        def wheelEvent(event):
+            delta = event.angleDelta().y()
+            if delta > 0:
+                s.setValue(s.value() + 1)
+            elif delta < 0:
+                s.setValue(s.value() - 1)
+            event.accept()
+
+        s.wheelEvent = wheelEvent
+
         label = QLabel(str(v))
         label.setMinimumWidth(40)
         label.setAlignment(Qt.AlignRight)
@@ -2288,7 +2310,6 @@ class OLSettings(QWidget):
             self.ui_song_info_color = res.name()
             self.ui_song_info_color_btn.setStyleSheet(
                 f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
-            # 同步更新標籤顏色
             if hasattr(self, 'song_name_label'):
                 self.song_name_label.setStyleSheet(f"font-weight: bold; color: {res.name()}; margin-top: 10px;")
             self.auto_apply()
@@ -2299,7 +2320,6 @@ class OLSettings(QWidget):
             self.ui_song_difficulty_color = res.name()
             self.ui_song_difficulty_color_btn.setStyleSheet(
                 f"background: {res.name()}; color: white; font-weight: bold; border: 2px solid #333;")
-            # 同步更新標籤顏色
             if hasattr(self, 'difficulty_label'):
                 self.difficulty_label.setStyleSheet(f"font-weight: bold; color: {res.name()}; margin-top: 10px;")
             self.auto_apply()
@@ -2319,16 +2339,13 @@ class OLSettings(QWidget):
         cfg.data["custom_window_size"] = is_custom
 
         if not is_custom:
-            # 切換回自動時，立即重新計算視窗大小
             self.overlay.setup_ui()
         else:
-            # 切換到手動時，保存當前視窗大小
             cfg.data["window_width"] = self.overlay.width()
             cfg.data["window_height"] = self.overlay.height()
             self.ui_window_width.setValue(self.overlay.width())
             self.ui_window_height.setValue(self.overlay.height())
 
-    # 新增：視窗大小變更
     def on_window_size_changed(self):
         if cfg.data.get("custom_window_size", False):
             new_width = self.ui_window_width.value()
@@ -2433,7 +2450,6 @@ class ToggleKeybindListener(QThread):
             keyboard.unhook(self.current_hook)
 
 class OsuTrackerThread(QThread):
-    """osu! 歌曲追蹤執行緒"""
     song_changed = Signal(dict)
     window_status_changed = Signal(bool)
 
@@ -2441,12 +2457,11 @@ class OsuTrackerThread(QThread):
         super().__init__()
         self.running = True
         self.current_song = None
-        self.no_song_timer = 0  # 添加這行：用於延遲切換
+        self.no_song_timer = 0
         self.osu_window_detected = False
 
 
     def get_osu_window_title(self):
-        """獲取 osu! 視窗標題"""
         try:
             import win32gui
 
@@ -2464,7 +2479,6 @@ class OsuTrackerThread(QThread):
             return None
 
     def parse_song_info(self, title):
-        """解析歌曲資訊"""
         import re
         pattern = r"osu!\s*-\s*(.+?)\s*-\s*(.+?)\s*\[(.+?)\]"
         match = re.search(pattern, title)
