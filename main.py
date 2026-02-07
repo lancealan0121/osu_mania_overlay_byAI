@@ -941,6 +941,11 @@ class OLSettings(QWidget):
     def __init__(self, overlay):
         super().__init__()
         self.overlay = overlay
+
+        self.fade_out_animation = None
+        self.fade_in_animation = None
+        self.animation_running = False
+
         self.setWindowTitle(t("window_title"))
 
         self.resize(
@@ -1914,10 +1919,31 @@ class OLSettings(QWidget):
 
     def closeEvent(self, event):
 
+        if self.fade_out_animation:
+            self.fade_out_animation.stop()
+            self.fade_out_animation.deleteLater()
+            self.fade_out_animation = None
+
+        if self.fade_in_animation:
+            self.fade_in_animation.stop()
+            self.fade_in_animation.deleteLater()
+            self.fade_in_animation = None
+
+        for i in range(self.tabs.count()):
+            widget = self.tabs.widget(i)
+            if widget and widget.graphicsEffect():
+                widget.graphicsEffect().deleteLater()
+                widget.setGraphicsEffect(None)
+
+            for child in widget.findChildren(QScrollArea):
+                if child.widget() and child.widget().graphicsEffect():
+                    child.widget().graphicsEffect().deleteLater()
+                    child.widget().setGraphicsEffect(None)
+
         cfg.data["settings_x"] = self.pos().x()
         cfg.data["settings_y"] = self.pos().y()
-
         cfg.save()
+
         event.accept()
 
     def on_glow_mode_changed(self, index):
@@ -1997,7 +2023,6 @@ class OLSettings(QWidget):
         self.show_message(t("window_centered"))
 
     def on_tab_changing(self, new_index):
-
         if not cfg.data.get("enable_tab_animation", True):
             self.current_tab_index = new_index
             return
@@ -2020,8 +2045,12 @@ class OLSettings(QWidget):
         new_widget = self.tabs.widget(new_index)
 
         if old_widget and new_widget:
-
             duration = cfg.data.get("tab_animation_duration", 180)
+
+            if old_widget.graphicsEffect():
+                old_widget.graphicsEffect().deleteLater()
+            if new_widget.graphicsEffect():
+                new_widget.graphicsEffect().deleteLater()
 
             old_effect = QGraphicsOpacityEffect(old_widget)
             new_effect = QGraphicsOpacityEffect(new_widget)
@@ -2032,14 +2061,22 @@ class OLSettings(QWidget):
                 for child in widget.findChildren(QScrollArea):
                     scroll_widget = child.widget()
                     if scroll_widget:
+                        if scroll_widget.graphicsEffect():
+                            scroll_widget.graphicsEffect().deleteLater()
 
                         scroll_effect = QGraphicsOpacityEffect(scroll_widget)
                         scroll_widget.setGraphicsEffect(scroll_effect)
                         scroll_effect.setOpacity(effect_opacity)
 
             apply_effect_to_scroll_areas(old_widget, 1.0)
-
             apply_effect_to_scroll_areas(new_widget, 0.0)
+
+            if hasattr(self, 'fade_out_animation') and self.fade_out_animation:
+                self.fade_out_animation.stop()
+                self.fade_out_animation.deleteLater()
+            if hasattr(self, 'fade_in_animation') and self.fade_in_animation:
+                self.fade_in_animation.stop()
+                self.fade_in_animation.deleteLater()
 
             self.fade_out_animation = QPropertyAnimation(old_effect, b"opacity")
             self.fade_out_animation.setDuration(duration)
@@ -2069,14 +2106,30 @@ class OLSettings(QWidget):
             def on_animation_finished():
                 self.animation_running = False
 
-                old_widget.setGraphicsEffect(None)
-                new_widget.setGraphicsEffect(None)
+                if old_widget.graphicsEffect():
+                    old_widget.graphicsEffect().deleteLater()
+                    old_widget.setGraphicsEffect(None)
+
+                if new_widget.graphicsEffect():
+                    new_widget.graphicsEffect().deleteLater()
+                    new_widget.setGraphicsEffect(None)
+
                 for child in old_widget.findChildren(QScrollArea):
-                    if child.widget():
+                    if child.widget() and child.widget().graphicsEffect():
+                        child.widget().graphicsEffect().deleteLater()
                         child.widget().setGraphicsEffect(None)
+
                 for child in new_widget.findChildren(QScrollArea):
-                    if child.widget():
+                    if child.widget() and child.widget().graphicsEffect():
+                        child.widget().graphicsEffect().deleteLater()
                         child.widget().setGraphicsEffect(None)
+
+                if self.fade_out_animation:
+                    self.fade_out_animation.deleteLater()
+                    self.fade_out_animation = None
+                if self.fade_in_animation:
+                    self.fade_in_animation.deleteLater()
+                    self.fade_in_animation = None
 
             self.fade_in_animation.finished.connect(on_animation_finished)
 
