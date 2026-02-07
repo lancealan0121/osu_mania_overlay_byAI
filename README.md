@@ -75,6 +75,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
   - Added graphics opacity effects for tab transitions
   - Real-time window resize synchronization
   - Programmatic resize flag to prevent infinite loops
+  - Fixed the rainbow effect issue.
 
 ## ✨ Features
 
