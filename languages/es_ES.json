@@ -202,5 +202,14 @@
   "default_size_info": "Predeterminado Actual: {0} x {1} (usado cuando el programa se inicie la próxima vez)",
   "save_as_default_size": "Guardar como Tamaño Predeterminado",
   "default_size_saved": "✅ Guardado como tamaño predeterminado: {0} x {1} (toma efecto en el próximo inicio)",
-  "settings_size_note": "Instrucciones:\n• Arrastra los bordes de la ventana para redimensionar, los valores se sincronizan automáticamente\n• Una vez satisfecho con el tamaño, haz clic en el botón verde para guardar como tamaño de inicio predeterminado"
+  "settings_size_note": "Instrucciones:\n• Arrastra los bordes de la ventana para redimensionar, los valores se sincronizan automáticamente\n• Una vez satisfecho con el tamaño, haz clic en el botón verde para guardar como tamaño de inicio predeterminado",
+
+  "particle_color_mode": "Color de Partículas:",
+  "particle_color_key": "Color de Tecla",
+  "particle_color_white": "Blanco",
+  "particle_color_rainbow": "Arcoíris",
+  "particle_color_custom": "Personalizado",
+  "particle_custom_color": "Color Personalizado de Partículas:",
+  "glow_rainbow_speed": "Velocidad de Brillo Arcoíris:",
+  "particle_rainbow_speed": "Velocidad de Partículas Arcoíris:"
 }
