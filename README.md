@@ -54,7 +54,9 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
   - Adjustable duration (50-1000ms)
   - Quick presets: Fast (100ms) | Normal (180ms) | Slow (300ms)
 
-
+- Image System
+  - Many effects can be customized now
+ 
 - Dynamic Window Sizing:
   - Real-time window size change
   - Save custom default window size separate from current session
