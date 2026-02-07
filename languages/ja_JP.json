@@ -210,5 +210,6 @@
   "particle_color_custom": "カスタム",
   "particle_custom_color": "カスタムパーティクルカラー:",
   "glow_rainbow_speed": "光彩レインボー速度:",
-  "particle_rainbow_speed": "パーティクルレインボー速度:"
+  "particle_rainbow_speed": "パーティクルレインボー速度:",
+  "rounded_radius": "角丸半径:"
 }
