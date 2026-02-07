@@ -201,5 +201,14 @@
   "default_size_info": "現在のデフォルト: {0} x {1} (次回プログラム起動時に使用)",
   "save_as_default_size": "デフォルトサイズとして保存",
   "default_size_saved": "✅ デフォルトサイズとして保存しました: {0} x {1} (次回起動時に適用)",
-  "settings_size_note": "説明:\n• ウィンドウの端をドラッグしてサイズ変更すると、値が自動的に同期されます\n• サイズに満足したら、緑のボタンをクリックしてデフォルトの起動サイズとして保存してください"
+  "settings_size_note": "説明:\n• ウィンドウの端をドラッグしてサイズ変更すると、値が自動的に同期されます\n• サイズに満足したら、緑のボタンをクリックしてデフォルトの起動サイズとして保存してください",
+
+  "particle_color_mode": "パーティクルカラー:",
+  "particle_color_key": "キーカラー",
+  "particle_color_white": "白",
+  "particle_color_rainbow": "レインボー",
+  "particle_color_custom": "カスタム",
+  "particle_custom_color": "カスタムパーティクルカラー:",
+  "glow_rainbow_speed": "光彩レインボー速度:",
+  "particle_rainbow_speed": "パーティクルレインボー速度:"
 }
