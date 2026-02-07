@@ -1,10 +1,10 @@
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QLabel, QColorDialog, QTabWidget, QFormLayout,
-                               QSpinBox, QLineEdit, QPushButton, QCheckBox, QSlider,
+                               QSpinBox, QLineEdit, QPushButton, QCheckBox, QSlider, QGraphicsPixmapItem,
                                QComboBox, QDoubleSpinBox, QGroupBox, QScrollArea, QGraphicsOpacityEffect)
 from PySide6.QtCore import Qt, QTimer, QThread, Signal, QRectF, QPointF, QPropertyAnimation, QEasingCurve, Property
 from PySide6.QtGui import (QPainter, QColor, QBrush, QPen, QFont, QLinearGradient,
-                           QRadialGradient, QPainterPath)
+                           QRadialGradient, QPainterPath, QPixmap)
 import keyboard
 import random
 import math
@@ -159,6 +159,21 @@ DEFAULT_CONFIG = {
     "rounded_radius": 6,
     "particle_color_mode": "key",
     "particle_custom_color": "#FF69B4",
+
+    "particle_use_image": False,
+    "particle_image_path": "",
+    "particle_image_scale": 1.0,  # 圖片縮放比例
+
+    "key_use_image": False,
+    "key_image_path": "",
+    "key_image_scale_mode": "stretch",  # stretch(拉伸), fit(保持比例), crop(裁切填滿)
+    "key_image_opacity": 100,  # 0-100
+    "key_image_blend_color": True,  # 是否混合按鍵顏色
+
+    "vis_use_image": False,
+    "vis_image_path": "",
+    "vis_image_opacity": 180,
+    "vis_image_blend_gradient": True,  # 是否保留漸層效果
 }
 
 
@@ -200,6 +215,19 @@ class Particle:
         self.size = random.uniform(cfg.data["particle_size_min"], cfg.data["particle_size_max"])
         self.rotation = random.uniform(0, 360)
         self.rot_speed = random.uniform(-10, 10)
+
+        self.image = None
+        if cfg.data.get("particle_use_image", False):
+            image_path = cfg.data.get("particle_image_path", "")
+            if image_path and os.path.exists(image_path):
+                pixmap = QPixmap(image_path)
+                if not pixmap.isNull():
+                    scale = cfg.data.get("particle_image_scale", 1.0)
+                    base_size = 32 * scale
+                    actual_size = int(base_size * (self.size / 4))
+                    self.image = pixmap.scaled(actual_size, actual_size,
+                                               Qt.KeepAspectRatio,
+                                               Qt.SmoothTransformation)
 
     def update(self):
         self.pos += self.vel
@@ -602,6 +630,22 @@ class OLOverlay(QWidget):
             painter.drawRoundedRect(rect, radius, radius)
 
     def draw_particle(self, painter, particle):
+        # ✨ 優先使用圖片
+        if particle.image and not particle.image.isNull():
+            painter.save()
+            painter.setOpacity(particle.life)
+            painter.translate(particle.pos)
+            painter.rotate(particle.rotation)
+
+            # 繪製圖片（中心對齊）
+            w = particle.image.width()
+            h = particle.image.height()
+            painter.drawPixmap(-w / 2, -h / 2, particle.image)
+
+            painter.restore()
+            return  # 使用圖片就不用繪製形狀了
+
+        # 原本的形狀繪製邏輯
         shape = cfg.data["particle_shape"]
         size = particle.size * particle.life
 
@@ -758,6 +802,41 @@ class OLOverlay(QWidget):
                 for n in k.active_notes:
                     rect = QRectF(start_x, base_y + n["y"], kw, n["h"])
 
+                    # ===== 檢查是否使用圖片 =====
+                    if cfg.data.get("vis_use_image", False):
+                        image_path = cfg.data.get("vis_image_path", "")
+                        if image_path and os.path.exists(image_path):
+                            pixmap = QPixmap(image_path)
+                            if not pixmap.isNull():
+                                # 拉伸圖片到音符大小
+                                scaled_pixmap = pixmap.scaled(
+                                    int(kw), int(n["h"]),
+                                    Qt.IgnoreAspectRatio,  # 垂直拉伸
+                                    Qt.SmoothTransformation
+                                )
+
+                                # 設定透明度
+                                vis_opacity = cfg.data.get("vis_image_opacity", 180) / 255.0
+                                painter.setOpacity(vis_opacity)
+
+                                # 繪製圖片
+                                painter.drawPixmap(rect.toRect(), scaled_pixmap)
+
+                                # 是否疊加漸層效果
+                                if cfg.data.get("vis_image_blend_gradient", True):
+                                    grad = QLinearGradient(rect.topLeft(), rect.bottomLeft())
+                                    c1 = QColor(color)
+                                    c1.setAlpha(100)  # 半透明
+                                    grad.setColorAt(0, c1)
+                                    grad.setColorAt(1, QColor(0, 0, 0, 0))
+                                    painter.setBrush(grad)
+                                    painter.setPen(Qt.NoPen)
+                                    painter.drawRoundedRect(rect, 4, 4)
+
+                                painter.setOpacity(1.0)
+                                continue  # 跳過原本的繪製邏輯
+
+                    # ===== 原本的繪製邏輯（沒用圖片時） =====
                     if cfg.data["vis_gradient"]:
                         grad = QLinearGradient(rect.topLeft(), rect.bottomLeft())
                         c1 = QColor(color)
@@ -834,7 +913,103 @@ class OLOverlay(QWidget):
             painter.setBrush(fill)
 
             rect = QRectF(-kw / 2, -kh / 2, kw, kh)
-            self.draw_key_shape(painter, rect, cfg.data["key_shape"])
+
+            # ===== 繪製按鍵背景圖片（使用裁切路徑） =====
+            if cfg.data.get("key_use_image", False):
+                image_path = cfg.data.get("key_image_path", "")
+                if image_path and os.path.exists(image_path):
+                    pixmap = QPixmap(image_path)
+                    if not pixmap.isNull():
+                        # 根據縮放模式處理圖片
+                        scale_mode = cfg.data.get("key_image_scale_mode", "stretch")
+
+                        if scale_mode == "stretch":
+                            # 拉伸填滿整個按鍵
+                            scaled_pixmap = pixmap.scaled(
+                                int(kw), int(kh),
+                                Qt.IgnoreAspectRatio,
+                                Qt.SmoothTransformation
+                            )
+                        elif scale_mode == "fit":
+                            # 保持比例，留空白
+                            scaled_pixmap = pixmap.scaled(
+                                int(kw), int(kh),
+                                Qt.KeepAspectRatio,
+                                Qt.SmoothTransformation
+                            )
+                        else:  # crop
+                            # 保持比例，裁切多餘部分
+                            scaled_pixmap = pixmap.scaled(
+                                int(kw), int(kh),
+                                Qt.KeepAspectRatioByExpanding,
+                                Qt.SmoothTransformation
+                            )
+
+                        # ===== ✨ 建立裁切路徑（與按鍵形狀一致） =====
+                        clip_path = QPainterPath()
+                        key_shape = cfg.data["key_shape"]
+
+                        if key_shape == "circle":
+                            clip_path.addEllipse(rect)
+                        elif key_shape == "square":
+                            clip_path.addRect(rect)
+                        elif key_shape == "hexagon":
+                            w, h = rect.width(), rect.height()
+                            cx, cy = rect.center().x(), rect.center().y()
+                            points = []
+                            for i in range(6):
+                                angle = math.pi / 3 * i
+                                x = cx + w / 2 * math.cos(angle)
+                                y = cy + h / 2 * math.sin(angle)
+                                points.append(QPointF(x, y))
+                            clip_path.moveTo(points[0])
+                            for p in points[1:]:
+                                clip_path.lineTo(p)
+                            clip_path.closeSubpath()
+                        else:  # rounded (預設)
+                            radius = cfg.data.get("rounded_radius", 6)
+                            clip_path.addRoundedRect(rect, radius, radius)
+
+                        # ===== 套用裁切並繪製圖片 =====
+                        painter.save()
+                        painter.setClipPath(clip_path)  # 設定裁切區域
+
+                        # 設定透明度
+                        opacity = cfg.data.get("key_image_opacity", 100) / 100.0
+                        painter.setOpacity(opacity)
+
+                        # 繪製圖片（居中）
+                        img_rect = scaled_pixmap.rect()
+                        img_rect.moveCenter(rect.center().toPoint())
+                        painter.drawPixmap(img_rect, scaled_pixmap)
+
+                        painter.setOpacity(1.0)  # 恢復透明度
+                        painter.restore()  # 恢復裁切設定
+
+                        if cfg.data["border_glow"] and k.is_pressed:
+                            painter.setPen(QPen(color.lighter(150), cfg.data["border_width"] * 2))
+                        else:
+                            painter.setPen(QPen(color, cfg.data["border_width"]))
+
+                        painter.setBrush(Qt.NoBrush)  # 不填充，只畫邊框
+                        self.draw_key_shape(painter, rect, cfg.data["key_shape"])
+
+            # ===== 是否混合顏色 =====
+            if cfg.data.get("key_use_image", False) and cfg.data.get("key_image_blend_color", True):
+                # 在圖片上疊加半透明顏色層
+                blend_opacity = 0.3 if k.is_pressed else 0.15
+                painter.setOpacity(blend_opacity)
+                painter.setBrush(fill)
+                self.draw_key_shape(painter, rect, cfg.data["key_shape"])
+                painter.setOpacity(1.0)
+            elif not cfg.data.get("key_use_image", False):
+                # 原本的繪製邏輯（沒用圖片時）
+                painter.setBrush(fill)
+                self.draw_key_shape(painter, rect, cfg.data["key_shape"])
+            else:
+                # 有圖片但不混合顏色時，只畫邊框
+                painter.setBrush(Qt.NoBrush)
+                self.draw_key_shape(painter, rect, cfg.data["key_shape"])
 
             painter.setPen(Qt.white)
             painter.setFont(QFont("Microsoft JhengHei UI", int(kh * 0.3), QFont.Bold))
@@ -1359,8 +1534,11 @@ class OLSettings(QWidget):
         physics_group.setLayout(pf)
         effects_main_layout.addWidget(physics_group)
 
+        # ===== 粒子效果群組 =====
         particle_group = QGroupBox(t("particle_group"))
         paf = QFormLayout()
+
+        # 基本粒子設定
         self.ui_part_en = self.add_check(paf, t("enable_particles"), cfg.data["enable_part"])
         self.ui_part_c = self.add_spin(paf, t("particle_count"), 0, 200, cfg.data["part_count"])
         self.ui_part_g = self.add_slider(paf, t("gravity"), 0, 500, cfg.data["part_gravity"])
@@ -1373,6 +1551,7 @@ class OLSettings(QWidget):
         self.ui_part_f.valueChanged.connect(self.auto_apply)
         self.ui_part_d.valueChanged.connect(self.auto_apply)
 
+        # 粒子形狀
         self.ui_part_shape = QComboBox()
         part_shape_items = [t("particle_circle"), t("particle_square"), t("particle_star")]
         self.ui_part_shape.addItems(part_shape_items)
@@ -1381,9 +1560,13 @@ class OLSettings(QWidget):
         self.ui_part_shape.currentIndexChanged.connect(self.auto_apply)
         paf.addRow(t("particle_shape"), self.ui_part_shape)
 
+        # 粒子大小
         self.ui_part_size_min = self.add_dspin(paf, t("min_particle_size"), 0.5, 50, cfg.data["particle_size_min"])
         self.ui_part_size_max = self.add_dspin(paf, t("max_particle_size"), 0.5, 50, cfg.data["particle_size_max"])
+        self.ui_part_size_min.valueChanged.connect(self.auto_apply)
+        self.ui_part_size_max.valueChanged.connect(self.auto_apply)
 
+        # 粒子顏色模式
         self.ui_part_color_mode = QComboBox()
         part_color_items = [t("particle_color_key"), t("particle_color_white"),
                             t("particle_color_rainbow"), t("particle_color_custom")]
@@ -1393,7 +1576,9 @@ class OLSettings(QWidget):
         self.ui_part_color_mode.currentIndexChanged.connect(self.on_particle_color_mode_changed)
         paf.addRow(t("particle_color_mode"), self.ui_part_color_mode)
 
-        self.ui_part_rainbow_speed = self.add_slider(paf, t("particle_rainbow_speed"), 1, 100,cfg.data.get("particle_rainbow_speed", 5))
+        # 彩虹速度（僅在彩虹模式顯示）
+        self.ui_part_rainbow_speed = self.add_slider(paf, t("particle_rainbow_speed"), 1, 100,
+                                                     cfg.data.get("particle_rainbow_speed", 5))
         self.ui_part_rainbow_speed.valueChanged.connect(self.auto_apply)
 
         self.particle_rainbow_speed_widget = QWidget()
@@ -1402,6 +1587,7 @@ class OLSettings(QWidget):
         paf.addRow(self.particle_rainbow_speed_widget)
         self.particle_rainbow_speed_widget.setVisible(cfg.data.get("particle_color_mode") == "rainbow")
 
+        # 自訂顏色（僅在自訂模式顯示）
         part_custom_color_layout = QHBoxLayout()
         part_custom_color_layout.addWidget(QLabel(t("particle_custom_color")))
         self.ui_part_custom_color_btn = QPushButton(t("choose_color"))
@@ -1415,14 +1601,57 @@ class OLSettings(QWidget):
         self.particle_custom_widget = QWidget()
         self.particle_custom_widget.setLayout(part_custom_color_layout)
         paf.addRow(self.particle_custom_widget)
-
         self.particle_custom_widget.setVisible(cfg.data.get("particle_color_mode", "key") == "custom")
-
-        self.ui_part_size_min.valueChanged.connect(self.auto_apply)
-        self.ui_part_size_max.valueChanged.connect(self.auto_apply)
 
         particle_group.setLayout(paf)
         effects_main_layout.addWidget(particle_group)
+
+        # ===== ✨ 粒子圖片設定群組 ✨ =====
+        particle_image_group = QGroupBox(t("particle_image_group"))
+        particle_image_layout = QFormLayout()
+
+        # 啟用圖片粒子
+        self.ui_part_use_image = self.add_check(particle_image_layout, t("particle_use_image"),
+                                                cfg.data.get("particle_use_image", False))
+        self.ui_part_use_image.stateChanged.connect(self.on_particle_image_toggle)
+
+        # 當前圖片路徑顯示
+        current_image_path = cfg.data.get("particle_image_path", "")
+        display_text = os.path.basename(current_image_path) if current_image_path else t("no_image_selected")
+        self.particle_image_path_label = QLabel(display_text)
+        self.particle_image_path_label.setStyleSheet("color: #888; font-size: 11px;")
+        self.particle_image_path_label.setWordWrap(True)
+        particle_image_layout.addRow(t("current_image"), self.particle_image_path_label)
+
+        # 選擇圖片按鈕
+        choose_image_btn = QPushButton(t("choose_particle_image"))
+        choose_image_btn.setStyleSheet("background: #4A90E2; color: white; padding: 8px; font-weight: bold;")
+        choose_image_btn.clicked.connect(self.choose_particle_image)
+        particle_image_layout.addRow(choose_image_btn)
+
+        # 清除圖片按鈕
+        clear_image_btn = QPushButton(t("clear_particle_image"))
+        clear_image_btn.setStyleSheet("background: #E74C3C; color: white; padding: 8px; font-weight: bold;")
+        clear_image_btn.clicked.connect(self.clear_particle_image)
+        particle_image_layout.addRow(clear_image_btn)
+
+        # 圖片縮放比例
+        self.ui_part_image_scale = self.add_dspin(particle_image_layout, t("particle_image_scale"),
+                                                  0.1, 5.0, cfg.data.get("particle_image_scale", 1.0))
+        self.ui_part_image_scale.valueChanged.connect(self.auto_apply)
+
+        # 提示訊息
+        image_note = QLabel(t("particle_image_note"))
+        image_note.setStyleSheet("color: #888; font-size: 11px; font-style: italic;")
+        image_note.setWordWrap(True)
+        particle_image_layout.addRow(image_note)
+
+        particle_image_group.setLayout(particle_image_layout)
+        effects_main_layout.addWidget(particle_image_group)
+
+        # 根據當前狀態更新介面
+
+
         effects_main_layout.addStretch()
         self.tabs.addTab(self.t_effects_options, t("tab_effects_options"))
 
@@ -1450,7 +1679,8 @@ class OLSettings(QWidget):
         self.ui_glow_mode.currentIndexChanged.connect(self.auto_apply)
         glow_layout.addRow(t("glow_color"), self.ui_glow_mode)
 
-        self.ui_glow_rainbow_speed = self.add_slider(glow_layout, t("glow_rainbow_speed"), 1, 100,cfg.data.get("glow_rainbow_speed", 5))
+        self.ui_glow_rainbow_speed = self.add_slider(glow_layout, t("glow_rainbow_speed"), 1, 100,
+                                                     cfg.data.get("glow_rainbow_speed", 5))
         self.ui_glow_rainbow_speed.valueChanged.connect(self.auto_apply)
 
         self.glow_rainbow_speed_widget = QWidget()
@@ -1513,11 +1743,120 @@ class OLSettings(QWidget):
         rainbow_group.setLayout(rainbow_layout)
         ff.addRow(rainbow_group)
 
-        self.ui_shake_en = self.add_check(ff, t("enable_shake"), cfg.data["enable_shake"])
-        self.ui_shake_int = self.add_slider(ff, t("shake_intensity"), 1, 100, cfg.data["shake_intensity"])
+        # ===== 按鍵背景圖片設定 =====
+        key_image_group = QGroupBox(t("key_image_group"))
+        key_img_layout = QFormLayout()
+
+        self.ui_key_use_image = self.add_check(key_img_layout, t("key_use_image"),
+                                               cfg.data.get("key_use_image", False))
+        self.ui_key_use_image.stateChanged.connect(self.auto_apply)
+
+        # ===== 當前圖片路徑顯示 =====
+        current_key_image_path = cfg.data.get("key_image_path", "")
+        display_text = os.path.basename(current_key_image_path) if current_key_image_path else t("no_image_selected")
+        self.key_image_path_label = QLabel(display_text)
+        self.key_image_path_label.setStyleSheet("color: #888; font-size: 11px;")
+        self.key_image_path_label.setWordWrap(True)
+        key_img_layout.addRow(t("current_image"), self.key_image_path_label)
+
+        # ===== 選擇圖片按鈕 =====
+        choose_key_image_btn = QPushButton(t("choose_key_image"))
+        choose_key_image_btn.setStyleSheet("background: #4A90E2; color: white; padding: 8px; font-weight: bold;")
+        choose_key_image_btn.clicked.connect(self.choose_key_image)
+        key_img_layout.addRow(choose_key_image_btn)
+
+        # ===== 清除圖片按鈕 =====
+        clear_key_image_btn = QPushButton(t("clear_key_image"))
+        clear_key_image_btn.setStyleSheet("background: #E74C3C; color: white; padding: 8px; font-weight: bold;")
+        clear_key_image_btn.clicked.connect(self.clear_key_image)
+        key_img_layout.addRow(clear_key_image_btn)
+
+        # ===== 縮放模式 =====
+        self.ui_key_image_scale_mode = QComboBox()
+        self.ui_key_image_scale_mode.addItems([t("scale_stretch"), t("scale_fit"), t("scale_crop")])
+        scale_mode_map = {"stretch": 0, "fit": 1, "crop": 2}
+        self.ui_key_image_scale_mode.setCurrentIndex(
+            scale_mode_map.get(cfg.data.get("key_image_scale_mode", "stretch"), 0))
+        self.ui_key_image_scale_mode.currentIndexChanged.connect(self.auto_apply)
+        key_img_layout.addRow(t("key_image_scale_mode"), self.ui_key_image_scale_mode)
+
+        # ===== 透明度 =====
+        self.ui_key_image_opacity = self.add_slider(key_img_layout, t("key_image_opacity"), 0, 100,
+                                                    cfg.data.get("key_image_opacity", 100))
+        self.ui_key_image_opacity.valueChanged.connect(self.auto_apply)
+
+        # ===== 混合顏色 =====
+        self.ui_key_image_blend = self.add_check(key_img_layout, t("key_image_blend_color"),
+                                                 cfg.data.get("key_image_blend_color", True))
+        self.ui_key_image_blend.stateChanged.connect(self.auto_apply)
+
+        # ===== 提示訊息 =====
+        key_image_note = QLabel(t("key_image_note"))
+        key_image_note.setStyleSheet("color: #888; font-size: 11px; font-style: italic;")
+        key_image_note.setWordWrap(True)
+        key_img_layout.addRow(key_image_note)
+
+        key_image_group.setLayout(key_img_layout)
+        ff.addRow(key_image_group)
+
+        # ===== 音符視覺化圖片設定 =====
+        vis_image_group = QGroupBox(t("vis_image_group"))
+        vis_img_layout = QFormLayout()
+
+        self.ui_vis_use_image = self.add_check(vis_img_layout, t("vis_use_image"),
+                                               cfg.data.get("vis_use_image", False))
+        self.ui_vis_use_image.stateChanged.connect(self.auto_apply)
+
+        # ===== 當前圖片路徑顯示 =====
+        current_vis_image_path = cfg.data.get("vis_image_path", "")
+        display_text = os.path.basename(current_vis_image_path) if current_vis_image_path else t("no_image_selected")
+        self.vis_image_path_label = QLabel(display_text)
+        self.vis_image_path_label.setStyleSheet("color: #888; font-size: 11px;")
+        self.vis_image_path_label.setWordWrap(True)
+        vis_img_layout.addRow(t("current_image"), self.vis_image_path_label)
+
+        # ===== 選擇圖片按鈕 =====
+        choose_vis_image_btn = QPushButton(t("choose_vis_image"))
+        choose_vis_image_btn.setStyleSheet("background: #4A90E2; color: white; padding: 8px; font-weight: bold;")
+        choose_vis_image_btn.clicked.connect(self.choose_vis_image)
+        vis_img_layout.addRow(choose_vis_image_btn)
+
+        # ===== 清除圖片按鈕 =====
+        clear_vis_image_btn = QPushButton(t("clear_vis_image"))
+        clear_vis_image_btn.setStyleSheet("background: #E74C3C; color: white; padding: 8px; font-weight: bold;")
+        clear_vis_image_btn.clicked.connect(self.clear_vis_image)
+        vis_img_layout.addRow(clear_vis_image_btn)
+
+        # ===== 透明度 =====
+        self.ui_vis_image_opacity = self.add_slider(vis_img_layout, t("vis_image_opacity"), 0, 255,
+                                                    cfg.data.get("vis_image_opacity", 180))
+        self.ui_vis_image_opacity.valueChanged.connect(self.auto_apply)
+
+        # ===== 混合漸層 =====
+        self.ui_vis_image_blend = self.add_check(vis_img_layout, t("vis_image_blend_gradient"),
+                                                 cfg.data.get("vis_image_blend_gradient", True))
+        self.ui_vis_image_blend.stateChanged.connect(self.auto_apply)
+
+        # ===== 提示訊息 =====
+        vis_image_note = QLabel(t("vis_image_note"))
+        vis_image_note.setStyleSheet("color: #888; font-size: 11px; font-style: italic;")
+        vis_image_note.setWordWrap(True)
+        vis_img_layout.addRow(vis_image_note)
+
+        vis_image_group.setLayout(vis_img_layout)
+        ff.addRow(vis_image_group)
+
+        # ===== 震動效果（移到最後） =====
+        shake_group = QGroupBox(t("shake_group"))
+        shake_layout = QFormLayout()
+        self.ui_shake_en = self.add_check(shake_layout, t("enable_shake"), cfg.data["enable_shake"])
+        self.ui_shake_int = self.add_slider(shake_layout, t("shake_intensity"), 1, 100, cfg.data["shake_intensity"])
 
         self.ui_shake_en.stateChanged.connect(self.auto_apply)
         self.ui_shake_int.valueChanged.connect(self.auto_apply)
+
+        shake_group.setLayout(shake_layout)
+        ff.addRow(shake_group)
 
         self.tabs.addTab(self.t_fx, t("tab_effects"))
 
@@ -1860,6 +2199,9 @@ class OLSettings(QWidget):
         window_main_layout.addStretch()
         self.tabs.addTab(self.t_window, t("tab_window"))
 
+        if hasattr(self, 'ui_part_use_image'):
+            self.on_particle_image_toggle()
+
     def on_settings_size_changed(self):
         if not hasattr(self, '_programmatic_resize') or not self._programmatic_resize:
             new_width = self.ui_settings_width.value()
@@ -1868,6 +2210,124 @@ class OLSettings(QWidget):
             self._programmatic_resize = True
             self.resize(new_width, new_height)
             self._programmatic_resize = False
+
+    def clear_particle_image(self):
+        """清除粒子圖片"""
+        cfg.data["particle_image_path"] = ""
+        cfg.data["particle_use_image"] = False
+        self.particle_image_path_label.setText(t("no_image_selected"))
+        self.ui_part_use_image.setChecked(False)
+        self.show_message(t("particle_image_cleared"))
+        self.auto_apply()
+
+    def choose_particle_image(self):
+        """選擇粒子圖片"""
+        from PySide6.QtWidgets import QFileDialog
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            t("choose_particle_image"),
+            "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp);;All Files (*.*)"
+        )
+
+        if file_path:
+            cfg.data["particle_image_path"] = file_path
+            self.particle_image_path_label.setText(os.path.basename(file_path))
+            self.show_message(t("particle_image_set").format(os.path.basename(file_path)))
+            self.auto_apply()
+
+    def choose_key_image(self):
+        from PySide6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, t("choose_key_image"), "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp);;All Files (*.*)"
+        )
+        if file_path:
+            cfg.data["key_image_path"] = file_path
+            self.key_image_path_label.setText(os.path.basename(file_path))  # 更新顯示
+            self.show_message(t("key_image_set").format(os.path.basename(file_path)))
+            self.auto_apply()
+
+    def choose_vis_image(self):
+        from PySide6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, t("choose_vis_image"), "",
+            "Images (*.png *.jpg *.jpeg *.gif *.bmp);;All Files (*.*)"
+        )
+        if file_path:
+            cfg.data["vis_image_path"] = file_path
+            self.vis_image_path_label.setText(os.path.basename(file_path))  # 更新顯示
+            self.show_message(t("vis_image_set").format(os.path.basename(file_path)))
+            self.auto_apply()
+
+    def clear_key_image(self):
+        """清除按鍵背景圖片"""
+        cfg.data["key_image_path"] = ""
+        cfg.data["key_use_image"] = False
+        self.key_image_path_label.setText(t("no_image_selected"))
+        self.ui_key_use_image.setChecked(False)
+        self.show_message(t("key_image_cleared"))
+        self.auto_apply()
+
+    def clear_vis_image(self):
+        """清除音符視覺化圖片"""
+        cfg.data["vis_image_path"] = ""
+        cfg.data["vis_use_image"] = False
+        self.vis_image_path_label.setText(t("no_image_selected"))
+        self.ui_vis_use_image.setChecked(False)
+        self.show_message(t("vis_image_cleared"))
+        self.auto_apply()
+
+    def on_particle_image_toggle(self):
+        """切換粒子圖片模式時的處理"""
+        use_image = self.ui_part_use_image.isChecked() if hasattr(self, 'ui_part_use_image') else False
+
+        # 禁用/啟用粒子形狀下拉選單
+        if hasattr(self, 'ui_part_shape'):
+            self.ui_part_shape.setEnabled(not use_image)
+            # 添加視覺樣式變化
+            if use_image:
+                self.ui_part_shape.setStyleSheet("QComboBox { color: #888; background-color: #2A2A2A; }")
+            else:
+                self.ui_part_shape.setStyleSheet("")  # 恢復預設樣式
+
+        # 禁用/啟用粒子顏色模式下拉選單
+        if hasattr(self, 'ui_part_color_mode'):
+            self.ui_part_color_mode.setEnabled(not use_image)
+            # 添加視覺樣式變化
+            if use_image:
+                self.ui_part_color_mode.setStyleSheet("QComboBox { color: #888; background-color: #2A2A2A; }")
+            else:
+                self.ui_part_color_mode.setStyleSheet("")
+
+        # 禁用/啟用自訂顏色按鈕
+        if hasattr(self, 'ui_part_custom_color_btn'):
+            self.ui_part_custom_color_btn.setEnabled(not use_image)
+            # 添加視覺樣式變化
+            if use_image:
+                self.ui_part_custom_color_btn.setStyleSheet(
+                    f"background: #3A3A3A; color: #666; font-weight: bold; border: 2px solid #333;"
+                )
+            else:
+                # 恢復原本的顏色樣式
+                self.ui_part_custom_color_btn.setStyleSheet(
+                    f"background: {self.ui_part_custom_color}; color: white; font-weight: bold; border: 2px solid #333;"
+                )
+
+        # 禁用/啟用整個自訂顏色區域
+        if hasattr(self, 'particle_custom_widget'):
+            self.particle_custom_widget.setEnabled(not use_image)
+
+        # 禁用/啟用整個彩虹速度區域
+        if hasattr(self, 'particle_rainbow_speed_widget'):
+            self.particle_rainbow_speed_widget.setEnabled(not use_image)
+
+        # 禁用/啟用彩虹速度滑桿
+        if hasattr(self, 'ui_part_rainbow_speed'):
+            self.ui_part_rainbow_speed.setEnabled(not use_image)
+
+        self.auto_apply()
 
     def on_smooth_scroll_changed(self):
         cfg.data["enable_smooth_scroll"] = self.ui_smooth_scroll.isChecked()
@@ -2255,6 +2715,18 @@ class OLSettings(QWidget):
             "settings_window_width": self.ui_settings_width.value() if hasattr(self, 'ui_settings_width') else 980,
             "settings_window_height": self.ui_settings_height.value() if hasattr(self, 'ui_settings_height') else 650,
             "rounded_radius": self.ui_rounded_radius.value(),
+            "particle_use_image": self.ui_part_use_image.isChecked() if hasattr(self, 'ui_part_use_image') else False,
+            "particle_image_scale": self.ui_part_image_scale.value() if hasattr(self, 'ui_part_image_scale') else 1.0,
+            "key_use_image": self.ui_key_use_image.isChecked() if hasattr(self, 'ui_key_use_image') else False,
+            "key_image_scale_mode": ["stretch", "fit", "crop"][self.ui_key_image_scale_mode.currentIndex()] if hasattr(
+                self, 'ui_key_image_scale_mode') else "stretch",
+            "key_image_opacity": self.ui_key_image_opacity.value() if hasattr(self, 'ui_key_image_opacity') else 100,
+            "key_image_blend_color": self.ui_key_image_blend.isChecked() if hasattr(self,
+                                                                                    'ui_key_image_blend') else True,
+            "vis_use_image": self.ui_vis_use_image.isChecked() if hasattr(self, 'ui_vis_use_image') else False,
+            "vis_image_opacity": self.ui_vis_image_opacity.value() if hasattr(self, 'ui_vis_image_opacity') else 180,
+            "vis_image_blend_gradient": self.ui_vis_image_blend.isChecked() if hasattr(self,
+                                                                                       'ui_vis_image_blend') else True,
         })
 
         self.overlay.setup_ui()
