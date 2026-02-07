@@ -202,5 +202,14 @@
   "default_size_info": "Current Default: {0} x {1} (used when program launches next time)",
   "save_as_default_size": "Save as Default Size",
   "default_size_saved": "✅ Saved as default size: {0} x {1} (takes effect on next launch)",
-  "settings_size_note": "Instructions:\n• Drag window edges to resize, values sync automatically\n• Once satisfied with the size, click the green button to save as default launch size"
+  "settings_size_note": "Instructions:\n• Drag window edges to resize, values sync automatically\n• Once satisfied with the size, click the green button to save as default launch size",
+
+  "particle_color_mode": "Particle Color:",
+  "particle_color_key": "Key Color",
+  "particle_color_white": "White",
+  "particle_color_rainbow": "Rainbow",
+  "particle_color_custom": "Custom",
+  "particle_custom_color": "Custom Particle Color:",
+  "glow_rainbow_speed": "Glow Rainbow Speed:",
+  "particle_rainbow_speed": "Particle Rainbow Speed:"
 }
