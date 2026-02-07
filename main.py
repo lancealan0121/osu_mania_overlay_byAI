@@ -1,18 +1,17 @@
-import sys
-import json
-import time
-import keyboard
-import os
-import random
-import math
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QLabel, QColorDialog, QTabWidget, QFormLayout,
                                QSpinBox, QLineEdit, QPushButton, QCheckBox, QSlider,
-                               QComboBox, QDoubleSpinBox, QGroupBox, QScrollArea)
+                               QComboBox, QDoubleSpinBox, QGroupBox, QScrollArea, QGraphicsOpacityEffect)
 from PySide6.QtCore import Qt, QTimer, QThread, Signal, QRectF, QPointF, QPropertyAnimation, QEasingCurve, Property
 from PySide6.QtGui import (QPainter, QColor, QBrush, QPen, QFont, QLinearGradient,
                            QRadialGradient, QPainterPath)
-
+import keyboard
+import random
+import math
+import time
+import json
+import sys
+import os
 
 #  pyinstaller --onefile --windowed --icon=icon.ico --add-data "languages;languages" main.py
 #  made by yulun, yulun loves ai generated
@@ -107,6 +106,7 @@ DEFAULT_CONFIG = {
     "enable_ripple": True, "ripple_speed": 5,
     "window_x": 100, "window_y": 100, "settings_x": 600, "settings_y": 100,
     "animation_style": "default", "key_shape": "rounded", "background_opacity": 0,
+    "key_background_opacity": 220,  # 新增這行
     "enable_rainbow": False, "rainbow_speed": 5,
     "enable_trail": True, "trail_length": 5,
     "enable_shake": False, "shake_intensity": 5,
@@ -146,6 +146,14 @@ DEFAULT_CONFIG = {
     "custom_window_size": False,
     "window_width": 640,
     "window_height": 700,
+
+    "enable_smooth_scroll": True,
+    "smooth_scroll_fps": 60,
+    "smooth_scroll_speed": 0.3,
+    "settings_window_width": 980,
+    "settings_window_height": 650,
+    "enable_tab_animation": True,  # 新增
+    "tab_animation_duration": 180,  # 新增，單位：毫秒
 }
 
 
@@ -796,7 +804,11 @@ class OLOverlay(QWidget):
             else:
                 painter.setPen(QPen(color, cfg.data["border_width"]))
 
-            fill = QColor(color).lighter(60) if k.is_pressed else QColor(20, 20, 20, 220)
+            if k.is_pressed:
+                fill = QColor(color).lighter(60)
+                fill.setAlpha(cfg.data["key_background_opacity"])
+            else:
+                fill = QColor(20, 20, 20, cfg.data["key_background_opacity"])
             painter.setBrush(fill)
 
             rect = QRectF(-kw / 2, -kh / 2, kw, kh)
@@ -904,35 +916,226 @@ class KeybindButton(QPushButton):
             self.update_text()
             self.keybind_set.emit(e.name)
 
-
 class OLSettings(QWidget):
     def __init__(self, overlay):
         super().__init__()
         self.overlay = overlay
         self.setWindowTitle(t("window_title"))
-        self.resize(980, 650)
+
+        # 使用配置中的視窗大小
+        self.resize(
+            cfg.data.get("settings_window_width", 980),
+            cfg.data.get("settings_window_height", 650)
+        )
         self.move(cfg.data["settings_x"], cfg.data["settings_y"])
 
-        main_lay = QVBoxLayout(self)
-        self.tabs = QTabWidget()
-        main_lay.addWidget(self.tabs)
+        self._programmatic_resize = False
 
+        # 添加這些屬性
+        self.animation_running = False
+        self.fade_out_animation = None
+        self.fade_in_animation = None
+
+        # 主佈局
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(0, 0, 0, 0)
+        main_lay.setSpacing(0)
+
+        # 創建滾動區域
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QScrollArea.NoFrame)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        # 設置平滑滾動樣式
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                background: #2A2A2A;
+                width: 12px;
+                border-radius: 6px;
+                margin: 2px;
+            }
+            QScrollBar::handle:vertical {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #5A5A5A, stop:1 #4A4A4A);
+                border-radius: 6px;
+                min-height: 30px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #6A6A6A, stop:1 #5A5A5A);
+            }
+            QScrollBar::handle:vertical:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #7A7A7A, stop:1 #6A6A6A);
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
+            }
+
+            /* 修復下拉選單樣式 */
+            QComboBox {
+                background-color: #3A3A3A;
+                color: white;
+                border: 1px solid #555;
+                padding: 4px 8px;
+                border-radius: 3px;
+                min-height: 22px;
+            }
+            QComboBox:hover {
+                background-color: #4A4A4A;
+                border: 1px solid #666;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 18px;
+                subcontrol-origin: padding;
+                subcontrol-position: center right;
+            }
+            QComboBox::down-arrow {
+                width: 0;
+                height: 0;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 5px solid #CCC;
+                margin-right: 3px;
+            }
+            QComboBox::down-arrow:hover {
+                border-top-color: #FFF;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #3A3A3A;
+                color: white;
+                selection-background-color: #4A90E2;
+                selection-color: white;
+                border: 1px solid #555;
+                outline: none;
+            }
+            QComboBox QAbstractItemView::item {
+                padding: 4px 8px;
+                min-height: 20px;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background-color: #4A4A4A;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #4A90E2;
+            }
+        """)
+
+        # 啟用平滑滾動
+        scroll_area.verticalScrollBar().setSingleStep(20)
+
+        # 創建內容容器
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(15, 15, 15, 15)
+        content_layout.setSpacing(0)
+
+        # 標籤頁容器
+        self.tabs = QTabWidget()
+        self.tabs.currentChanged.connect(self.on_tab_changing)
+        content_layout.addWidget(self.tabs)
+
+        # 將內容放入滾動區域
+        scroll_area.setWidget(content_widget)
+        main_lay.addWidget(scroll_area)
+
+        # 創建所有標籤頁
         self.create_all_tabs()
+
+        # 底部固定區域（保存按鈕和訊息）
+        bottom_widget = QWidget()
+        bottom_widget.setStyleSheet("background-color: #1E1E1E; padding: 5px;")  # 10px → 5px
+        bottom_layout = QVBoxLayout(bottom_widget)
+        bottom_layout.setContentsMargins(15, 5, 15, 5)  # 10, 10 → 5, 5
+        bottom_layout.setSpacing(3)  # 5 → 3
 
         self.save_btn = QPushButton(t("save_button"))
         self.save_btn.setStyleSheet("""
-            height: 50px; 
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5A5A5A, stop:1 #3A3A3A);
-            color: white; font-weight: bold; font-size: 14px; font-family: 'Microsoft JhengHei UI';
-            border: 2px solid #707070; border-radius: 8px;
-        """)
+                height: 35px; 
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5A5A5A, stop:1 #3A3A3A);
+                color: white; font-weight: bold; font-size: 14px; font-family: 'Microsoft JhengHei UI';
+                border: 2px solid #707070; border-radius: 8px;
+            """)
         self.save_btn.clicked.connect(self.save_all_animated)
-        main_lay.addWidget(self.save_btn)
+        bottom_layout.addWidget(self.save_btn)
 
         self.message_label = QLabel("")
         self.message_label.setAlignment(Qt.AlignCenter)
         self.message_label.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 12px;")
-        main_lay.addWidget(self.message_label)
+        bottom_layout.addWidget(self.message_label)
+
+        main_lay.addWidget(bottom_widget)
+
+        # 安裝滾輪事件過濾器以實現平滑滾動
+        scroll_area.viewport().installEventFilter(self)
+        self.scroll_area = scroll_area
+        self.smooth_scroll_timer = QTimer()
+        self.smooth_scroll_timer.timeout.connect(self._smooth_scroll_step)
+        self.scroll_target = 0
+        self.scroll_speed = 0
+
+
+    def eventFilter(self, obj, event):
+        """處理平滑滾動"""
+        if obj == self.scroll_area.viewport() and event.type() == event.Type.Wheel:
+            # 檢查是否啟用平滑滾動
+            if not cfg.data.get("enable_smooth_scroll", True):
+                return False  # 使用預設滾動
+
+            # 獲取滾輪增量
+            delta = event.angleDelta().y()
+
+            # 計算目標位置
+            current_pos = self.scroll_area.verticalScrollBar().value()
+            scroll_amount = -delta  # 反轉方向以符合自然滾動
+            self.scroll_target = current_pos + scroll_amount
+
+            # 限制範圍
+            max_scroll = self.scroll_area.verticalScrollBar().maximum()
+            self.scroll_target = max(0, min(self.scroll_target, max_scroll))
+
+            # 設置滾動速度
+            speed_factor = cfg.data.get("smooth_scroll_speed", 0.3)
+            self.scroll_speed = scroll_amount / 5  # 分5步完成
+
+            # 啟動平滑滾動
+            if not self.smooth_scroll_timer.isActive():
+                fps = cfg.data.get("smooth_scroll_fps", 60)
+                self.smooth_scroll_timer.start(int(1000 / fps))
+
+            return True
+        return super().eventFilter(obj, event)
+
+
+    def _smooth_scroll_step(self):
+        """執行平滑滾動的一步"""
+        current = self.scroll_area.verticalScrollBar().value()
+        target = self.scroll_target
+
+        # 如果接近目標，直接設置並停止
+        if abs(current - target) < 2:
+            self.scroll_area.verticalScrollBar().setValue(int(target))
+            self.smooth_scroll_timer.stop()
+            return
+
+        # 使用緩動函數，速度可配置
+        diff = target - current
+        speed_factor = cfg.data.get("smooth_scroll_speed", 0.3)
+        step = diff * speed_factor  # 使用配置的速度
+
+        new_value = current + step
+        self.scroll_area.verticalScrollBar().setValue(int(new_value))
+
 
     def on_language_changed(self, index):
         if not hasattr(self, 'language_codes') or index >= len(self.language_codes):
@@ -980,11 +1183,12 @@ class OLSettings(QWidget):
         self.ui_h = self.add_spin(lf, t("key_height"), 20, 5000, cfg.data["height"])
         self.ui_spacing = self.add_spin(lf, t("key_spacing"), 0, 500, cfg.data["spacing"])
         self.ui_bg_opacity = self.add_slider(lf, t("bg_opacity"), 0, 255, cfg.data["background_opacity"])
-
+        self.ui_key_bg_opacity = self.add_slider(lf, t("key_bg_opacity"), 0, 255,cfg.data["key_background_opacity"])
         self.ui_w.valueChanged.connect(self.auto_apply)
         self.ui_h.valueChanged.connect(self.auto_apply)
         self.ui_spacing.valueChanged.connect(self.auto_apply)
         self.ui_bg_opacity.valueChanged.connect(self.auto_apply)
+        self.ui_key_bg_opacity.valueChanged.connect(self.auto_apply)
         size_group.setLayout(lf)
         lay_main_layout.addWidget(size_group)
 
@@ -1472,6 +1676,7 @@ class OLSettings(QWidget):
         self.t_window = QWidget()
         window_main_layout = QVBoxLayout(self.t_window)
 
+        # 進階設定群組
         adv_group = QGroupBox(t("tab_advanced"))
         advf = QFormLayout()
         self.ui_fps = self.add_spin(advf, t("fps_limit"), 30, 500, cfg.data["fps_limit"])
@@ -1480,18 +1685,113 @@ class OLSettings(QWidget):
         adv_group.setLayout(advf)
         window_main_layout.addWidget(adv_group)
 
-        keybinds_group = QGroupBox(t("tab_keybinds"))
-        keybinds_f = QFormLayout()
-        keybinds_f.addRow(QLabel(t("keybind_note")))
-        toggle_layout = QHBoxLayout()
-        toggle_layout.addWidget(QLabel(t("toggle_settings")))
-        self.ui_toggle_key = KeybindButton(cfg.data["toggle_settings_key"])
-        self.ui_toggle_key.keybind_set.connect(self.on_toggle_keybind_set)
-        toggle_layout.addWidget(self.ui_toggle_key)
-        toggle_layout.addStretch()
-        keybinds_f.addRow(toggle_layout)
-        keybinds_group.setLayout(keybinds_f)
-        window_main_layout.addWidget(keybinds_group)
+        # 滾動設定群組
+        scroll_group = QGroupBox(t("scroll_settings"))
+        scrollf = QFormLayout()
+
+        self.ui_smooth_scroll = self.add_check(scrollf, t("enable_smooth_scroll"),cfg.data.get("enable_smooth_scroll", True))
+        self.ui_smooth_scroll.stateChanged.connect(self.on_smooth_scroll_changed)
+        self.ui_scroll_fps = self.add_spin(scrollf, t("scroll_fps"), 30, 144,cfg.data.get("smooth_scroll_fps", 60))
+        self.ui_scroll_fps.valueChanged.connect(self.on_scroll_settings_changed)
+        self.ui_scroll_speed = self.add_dspin(scrollf, t("scroll_speed"), 0.1, 1.0,cfg.data.get("smooth_scroll_speed", 0.3))
+        self.ui_scroll_speed.valueChanged.connect(self.on_scroll_settings_changed)
+
+        scrollf.addRow(QLabel(t("scroll_note")))
+
+        scroll_group.setLayout(scrollf)
+        window_main_layout.addWidget(scroll_group)
+
+        # 標籤頁動畫設定群組
+        tab_anim_group = QGroupBox(t("tab_animation_settings"))
+        tabf = QFormLayout()
+
+        self.ui_tab_animation = self.add_check(tabf, t("enable_tab_animation"),
+                                               cfg.data.get("enable_tab_animation", True))
+        self.ui_tab_animation.stateChanged.connect(self.on_tab_animation_changed)
+
+        self.ui_tab_anim_duration = self.add_spin(tabf, t("tab_animation_duration"), 50, 1000,
+                                                  cfg.data.get("tab_animation_duration", 180))
+        self.ui_tab_anim_duration.valueChanged.connect(self.on_tab_animation_changed)
+
+        # 添加說明
+        tabf.addRow(QLabel(t("tab_animation_note")))
+
+        # 添加預設值按鈕
+        preset_layout = QHBoxLayout()
+        fast_btn = QPushButton(t("preset_fast"))
+        fast_btn.clicked.connect(lambda: self.set_tab_animation_preset(100))
+        fast_btn.setStyleSheet("background: #4A90E2; color: white; padding: 5px;")
+
+        normal_btn = QPushButton(t("preset_normal"))
+        normal_btn.clicked.connect(lambda: self.set_tab_animation_preset(180))
+        normal_btn.setStyleSheet("background: #95A5A6; color: white; padding: 5px;")
+
+        slow_btn = QPushButton(t("preset_slow"))
+        slow_btn.clicked.connect(lambda: self.set_tab_animation_preset(300))
+        slow_btn.setStyleSheet("background: #E67E22; color: white; padding: 5px;")
+
+        preset_layout.addWidget(QLabel(t("animation_presets")))
+        preset_layout.addWidget(fast_btn)
+        preset_layout.addWidget(normal_btn)
+        preset_layout.addWidget(slow_btn)
+        preset_layout.addStretch()
+
+        preset_widget = QWidget()
+        preset_widget.setLayout(preset_layout)
+        tabf.addRow(preset_widget)
+
+        tab_anim_group.setLayout(tabf)
+        window_main_layout.addWidget(tab_anim_group)
+
+        # 設定視窗大小群組
+        settings_size_group = QGroupBox(t("settings_window_size"))
+        ssf = QFormLayout()
+
+        # 當前視窗大小（即時顯示）
+        current_size_label = QLabel(t("current_window_size"))
+        current_size_label.setStyleSheet("color: #4A90E2; font-weight: bold;")
+        ssf.addRow(current_size_label)
+
+        self.ui_settings_width = self.add_spin(ssf, t("settings_width"), 800, 1920, self.width())
+        self.ui_settings_height = self.add_spin(ssf, t("settings_height"), 500, 1200, self.height())
+
+        # 新增：連接信號以即時套用大小
+        self.ui_settings_width.valueChanged.connect(self.on_settings_size_changed)
+        self.ui_settings_height.valueChanged.connect(self.on_settings_size_changed)
+
+        # 說明提示
+        size_tip = QLabel(t("size_tip"))
+        size_tip.setStyleSheet("color: #888; font-size: 11px; font-style: italic;")
+        size_tip.setWordWrap(True)
+        ssf.addRow(size_tip)
+
+        # 分隔線
+        ssf.addRow(QLabel(""))
+
+        # 預設視窗大小（從配置讀取）
+        default_size_label = QLabel(t("default_window_size"))
+        default_size_label.setStyleSheet("color: #E67E22; font-weight: bold;")
+        ssf.addRow(default_size_label)
+
+        default_info = QLabel(t("default_size_info").format(
+            cfg.data.get("settings_window_width", 980),
+            cfg.data.get("settings_window_height", 650)
+        ))
+        default_info.setStyleSheet("color: #95A5A6; font-size: 11px;")
+        default_info.setWordWrap(True)
+        ssf.addRow(default_info)
+        self.default_size_info_label = default_info  # 保存引用以便更新
+
+        # 儲存為預設大小按鈕 - 改為綠色
+        save_as_default_btn = QPushButton(t("save_as_default_size"))
+        save_as_default_btn.setStyleSheet("background: #27AE60; color: white; padding: 8px; font-weight: bold;")
+        save_as_default_btn.clicked.connect(self.save_as_default_size)
+        ssf.addRow(save_as_default_btn)
+
+        ssf.addRow(QLabel(t("settings_size_note")))
+
+        settings_size_group.setLayout(ssf)
+        window_main_layout.addWidget(settings_size_group)
 
         lang_group = QGroupBox(t("tab_language"))
         langf = QFormLayout()
@@ -1522,6 +1822,105 @@ class OLSettings(QWidget):
         window_main_layout.addWidget(lang_group)
         window_main_layout.addStretch()
         self.tabs.addTab(self.t_window, t("tab_window"))
+
+    def on_settings_size_changed(self):
+        """設定視窗大小變更時即時套用"""
+        if not hasattr(self, '_programmatic_resize') or not self._programmatic_resize:
+            new_width = self.ui_settings_width.value()
+            new_height = self.ui_settings_height.value()
+
+            self._programmatic_resize = True
+            self.resize(new_width, new_height)
+            self._programmatic_resize = False
+
+    def on_smooth_scroll_changed(self):
+        """平滑滾動開關變更"""
+        cfg.data["enable_smooth_scroll"] = self.ui_smooth_scroll.isChecked()
+        if not cfg.data["enable_smooth_scroll"]:
+            self.smooth_scroll_timer.stop()
+
+    def on_scroll_settings_changed(self):
+        """滾動設定變更"""
+        cfg.data["smooth_scroll_fps"] = self.ui_scroll_fps.value()
+        cfg.data["smooth_scroll_speed"] = self.ui_scroll_speed.value()
+
+    def on_tab_animation_changed(self):
+        """標籤頁動畫設定變更"""
+        cfg.data["enable_tab_animation"] = self.ui_tab_animation.isChecked()
+        cfg.data["tab_animation_duration"] = self.ui_tab_anim_duration.value()
+
+    def set_tab_animation_preset(self, duration):
+        """設置標籤頁動畫預設值"""
+        self.ui_tab_anim_duration.setValue(duration)
+        cfg.data["tab_animation_duration"] = duration
+
+        preset_names = {100: t("preset_fast"), 180: t("preset_normal"), 300: t("preset_slow")}
+        preset_name = preset_names.get(duration, str(duration))
+        self.show_message(t("preset_applied").format(preset_name))
+
+    def apply_settings_window_size(self):
+        """立即套用視窗大小（用於手動輸入數值後）"""
+        new_width = self.ui_settings_width.value()
+        new_height = self.ui_settings_height.value()
+
+        self._programmatic_resize = True
+        self.resize(new_width, new_height)
+        self._programmatic_resize = False
+
+        self.show_message(t("settings_size_applied").format(new_width, new_height))
+
+    def update_to_current_size(self):
+        """將數值更新為當前視窗大小"""
+        current_width = self.width()
+        current_height = self.height()
+
+        self.ui_settings_width.setValue(current_width)
+        self.ui_settings_height.setValue(current_height)
+
+        self.show_message(t("current_size_updated").format(current_width, current_height))
+
+    def save_as_default_size(self):
+        """儲存當前數值為預設開啟大小"""
+        new_width = self.ui_settings_width.value()
+        new_height = self.ui_settings_height.value()
+
+        cfg.data["settings_window_width"] = new_width
+        cfg.data["settings_window_height"] = new_height
+        cfg.save()
+
+        # 更新預設大小顯示
+        if hasattr(self, 'default_size_info_label'):
+            self.default_size_info_label.setText(
+                t("default_size_info").format(new_width, new_height)
+            )
+
+        self.show_message(t("default_size_saved").format(new_width, new_height))
+
+    def resizeEvent(self, event):
+        """視窗大小改變時即時更新顯示"""
+        super().resizeEvent(event)
+
+        # 如果 UI 已經初始化，即時更新數值顯示
+        if hasattr(self, 'ui_settings_width') and hasattr(self, 'ui_settings_height'):
+            # 只在不是程式觸發的調整時更新（避免遞迴）
+            if not hasattr(self, '_programmatic_resize') or not self._programmatic_resize:
+                self.ui_settings_width.blockSignals(True)
+                self.ui_settings_height.blockSignals(True)
+
+                self.ui_settings_width.setValue(self.width())
+                self.ui_settings_height.setValue(self.height())
+
+                self.ui_settings_width.blockSignals(False)
+                self.ui_settings_height.blockSignals(False)
+
+    def closeEvent(self, event):
+        """關閉時只儲存視窗位置，不改變預設大小"""
+        cfg.data["settings_x"] = self.pos().x()
+        cfg.data["settings_y"] = self.pos().y()
+        # 注意：這裡不儲存當前大小為預設大小
+        # 只有點擊「儲存為預設大小」才會改變預設值
+        cfg.save()
+        event.accept()
 
     def on_glow_mode_changed(self, index):
         self.glow_custom_widget.setVisible(index == 3)
@@ -1585,6 +1984,101 @@ class OLSettings(QWidget):
 
         self.show_message(t("window_centered"))
 
+    def on_tab_changing(self, new_index):
+        """標籤頁切換時觸發動畫 - 改進版本，支援嵌套 widget"""
+        # 檢查是否啟用動畫
+        if not cfg.data.get("enable_tab_animation", True):
+            self.current_tab_index = new_index
+            return
+
+        if self.animation_running:
+            return
+
+        if not hasattr(self, 'current_tab_index'):
+            self.current_tab_index = 0
+
+        old_index = self.current_tab_index
+
+        if old_index == new_index:
+            return
+
+        self.animation_running = True
+        self.current_tab_index = new_index
+
+        old_widget = self.tabs.widget(old_index)
+        new_widget = self.tabs.widget(new_index)
+
+        if old_widget and new_widget:
+            # 獲取動畫時長
+            duration = cfg.data.get("tab_animation_duration", 180)
+
+            # 為主 widget 創建效果
+            old_effect = QGraphicsOpacityEffect(old_widget)
+            new_effect = QGraphicsOpacityEffect(new_widget)
+            old_widget.setGraphicsEffect(old_effect)
+            new_widget.setGraphicsEffect(new_effect)
+
+            # 額外處理：如果 widget 包含 QScrollArea，也為其內容添加效果
+            def apply_effect_to_scroll_areas(widget, effect_opacity):
+                for child in widget.findChildren(QScrollArea):
+                    scroll_widget = child.widget()
+                    if scroll_widget:
+                        # 為 scroll area 的內容創建獨立的透明度效果
+                        scroll_effect = QGraphicsOpacityEffect(scroll_widget)
+                        scroll_widget.setGraphicsEffect(scroll_effect)
+                        scroll_effect.setOpacity(effect_opacity)
+
+            # 為舊標籤頁的 scroll area 設置初始透明度
+            apply_effect_to_scroll_areas(old_widget, 1.0)
+            # 為新標籤頁的 scroll area 設置初始透明度
+            apply_effect_to_scroll_areas(new_widget, 0.0)
+
+            # 舊標籤頁淡出
+            self.fade_out_animation = QPropertyAnimation(old_effect, b"opacity")
+            self.fade_out_animation.setDuration(duration)
+            self.fade_out_animation.setStartValue(1.0)
+            self.fade_out_animation.setEndValue(0.0)
+            self.fade_out_animation.setEasingCurve(QEasingCurve.InOutCubic)
+
+            # 新標籤頁淡入
+            self.fade_in_animation = QPropertyAnimation(new_effect, b"opacity")
+            self.fade_in_animation.setDuration(duration)
+            self.fade_in_animation.setStartValue(0.0)
+            self.fade_in_animation.setEndValue(1.0)
+            self.fade_in_animation.setEasingCurve(QEasingCurve.InOutCubic)
+
+            # 同步更新 scroll area 的透明度
+            def sync_scroll_opacity(value, widget):
+                for child in widget.findChildren(QScrollArea):
+                    scroll_widget = child.widget()
+                    if scroll_widget and scroll_widget.graphicsEffect():
+                        scroll_widget.graphicsEffect().setOpacity(value)
+
+            self.fade_out_animation.valueChanged.connect(
+                lambda value: sync_scroll_opacity(value, old_widget)
+            )
+            self.fade_in_animation.valueChanged.connect(
+                lambda value: sync_scroll_opacity(value, new_widget)
+            )
+
+            def on_animation_finished():
+                self.animation_running = False
+                # 清理所有圖形效果
+                old_widget.setGraphicsEffect(None)
+                new_widget.setGraphicsEffect(None)
+                for child in old_widget.findChildren(QScrollArea):
+                    if child.widget():
+                        child.widget().setGraphicsEffect(None)
+                for child in new_widget.findChildren(QScrollArea):
+                    if child.widget():
+                        child.widget().setGraphicsEffect(None)
+
+            self.fade_in_animation.finished.connect(on_animation_finished)
+
+            # 同時開始兩個動畫
+            self.fade_out_animation.start()
+            self.fade_in_animation.start()
+
     def auto_apply(self):
         anim_reverse = ["default", "wave", "pulse", "bounce", "elastic"]
         shape_reverse = ["rounded", "square", "circle", "hexagon"]
@@ -1595,6 +2089,7 @@ class OLSettings(QWidget):
             "height": self.ui_h.value(),
             "spacing": self.ui_spacing.value(),
             "background_opacity": self.ui_bg_opacity.value(),
+            "key_background_opacity": self.ui_key_bg_opacity.value(),  # 新增
             "show_kps": self.ui_show_kps.isChecked(),
             "kps_font_size": self.ui_kps_size.value(),
             "kps_pos_x": self.ui_kps_x.value(),
@@ -1667,7 +2162,14 @@ class OLSettings(QWidget):
             "song_difficulty_color": self.ui_song_difficulty_color,  # 新增
             "custom_window_size": self.ui_custom_window_size.isChecked() if hasattr(self,'ui_custom_window_size') else False,
             "song_no_playing_text": self.ui_no_playing_text.text(),
-            "song_waiting_osu_text": self.ui_waiting_osu_text.text()
+            "song_waiting_osu_text": self.ui_waiting_osu_text.text(),
+            "enable_smooth_scroll": self.ui_smooth_scroll.isChecked() if hasattr(self, 'ui_smooth_scroll') else True,
+            "smooth_scroll_fps": self.ui_scroll_fps.value() if hasattr(self, 'ui_scroll_fps') else 60,
+            "smooth_scroll_speed": self.ui_scroll_speed.value() if hasattr(self, 'ui_scroll_speed') else 0.3,
+            "enable_tab_animation": self.ui_tab_animation.isChecked() if hasattr(self, 'ui_tab_animation') else True,
+            "tab_animation_duration": self.ui_tab_anim_duration.value() if hasattr(self, 'ui_tab_anim_duration') else 180,
+            "settings_window_width": self.ui_settings_width.value() if hasattr(self, 'ui_settings_width') else 980,
+            "settings_window_height": self.ui_settings_height.value() if hasattr(self, 'ui_settings_height') else 650
         })
 
         self.overlay.setup_ui()
@@ -1854,14 +2356,14 @@ class OLSettings(QWidget):
         self.save_btn.setEnabled(False)
 
         pressed_style = """
-            height: 50px; 
+            height: 35px; 
             background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4A4A4A, stop:1 #2A2A2A);
             color: white; font-weight: bold; font-size: 14px; font-family: 'Microsoft JhengHei UI';
             border: 2px solid #606060; border-radius: 8px;
         """
 
         original_style = """
-            height: 50px; 
+            height: 35px; 
             background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5A5A5A, stop:1 #3A3A3A);
             color: white; font-weight: bold; font-size: 14px; font-family: 'Microsoft JhengHei UI';
             border: 2px solid #707070; border-radius: 8px;
@@ -1996,7 +2498,7 @@ class OsuTrackerThread(QThread):
                             self.song_changed.emit(song_info)
                         elif not song_info and self.current_song is not None:
                             self.no_song_timer += 1
-                            if self.no_song_timer >= 2:
+                            if self.no_song_timer >= 3:
                                 self.current_song = None
                                 self.song_changed.emit({
                                     'artist': '',
@@ -2006,7 +2508,7 @@ class OsuTrackerThread(QThread):
                     else:
                         if self.current_song is not None:
                             self.no_song_timer += 1
-                            if self.no_song_timer >= 2:
+                            if self.no_song_timer >= 3:
                                 self.current_song = None
                                 self.song_changed.emit({
                                     'artist': '',
