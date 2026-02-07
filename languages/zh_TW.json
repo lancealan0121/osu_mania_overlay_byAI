@@ -212,6 +212,42 @@
 
   "glow_rainbow_speed": "光暈彩虹速度:",
   "particle_rainbow_speed": "粒子彩虹速度:",
-  "rounded_radius": "圓角半徑:"
-}
+  "rounded_radius": "圓角半徑:",
 
+  "particle_image_group": "粒子圖片設定",
+  "particle_use_image": "使用圖片作為粒子",
+  "choose_particle_image": "選擇粒子圖片",
+  "clear_particle_image": "清除圖片",
+  "current_image": "當前圖片:",
+  "no_image_selected": "未選擇圖片",
+  "particle_image_scale": "圖片縮放比例:",
+  "particle_image_note": "提示: 建議使用透明背景的 PNG 圖片，尺寸 32x32 到 128x128 像素效果最佳",
+  "particle_image_set": "✅ 已設定粒子圖片: {0}",
+  "particle_image_cleared": "✅ 已清除粒子圖片",
+
+  "key_image_group": "按鍵背景圖片",
+  "key_use_image": "使用圖片作為按鍵背景",
+  "choose_key_image": "選擇按鍵背景圖片",
+  "clear_key_image": "清除按鍵背景",
+  "key_image_scale_mode": "圖片縮放模式:",
+  "scale_stretch": "拉伸填滿",
+  "scale_fit": "保持比例(留空白)",
+  "scale_crop": "保持比例(裁切)",
+  "key_image_opacity": "圖片透明度:",
+  "key_image_blend_color": "混合按鍵顏色",
+  "key_image_note": "提示: 建議使用透明背景的 PNG 圖片，尺寸建議與按鍵大小接近",
+  "key_image_set": "✅ 已設定按鍵背景: {0}",
+  "key_image_cleared": "✅ 已清除按鍵背景圖片",
+
+  "vis_image_group": "音符視覺化圖片",
+  "vis_use_image": "使用圖片作為音符",
+  "choose_vis_image": "選擇音符圖片",
+  "clear_vis_image": "清除音符圖片",
+  "vis_image_opacity": "音符圖片透明度:",
+  "vis_image_blend_gradient": "疊加漸層效果",
+  "vis_image_note": "提示: 圖片會垂直拉伸跟隨音符長度，建議使用重複紋理或漸層圖片",
+  "vis_image_set": "✅ 已設定音符圖片: {0}",
+  "vis_image_cleared": "✅ 已清除音符圖片",
+
+  "shake_group": "震動效果"
+}
