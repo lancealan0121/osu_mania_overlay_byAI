@@ -211,5 +211,6 @@
   "particle_color_custom": "Personalizado",
   "particle_custom_color": "Color Personalizado de Partículas:",
   "glow_rainbow_speed": "Velocidad de Brillo Arcoíris:",
-  "particle_rainbow_speed": "Velocidad de Partículas Arcoíris:"
+  "particle_rainbow_speed": "Velocidad de Partículas Arcoíris:",
+  "rounded_radius": "Radio de esquina:"
 }
