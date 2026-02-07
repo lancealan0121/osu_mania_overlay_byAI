@@ -212,5 +212,42 @@
   "particle_custom_color": "自定义粒子颜色:",
   "glow_rainbow_speed": "光晕彩虹速度:",
   "particle_rainbow_speed": "粒子彩虹速度:",
-  "rounded_radius": "圆角半径:"
+  "rounded_radius": "圆角半径:",
+
+  "particle_image_group": "粒子图片设定",
+  "particle_use_image": "使用图片作为粒子",
+  "choose_particle_image": "选择粒子图片",
+  "clear_particle_image": "清除图片",
+  "current_image": "当前图片:",
+  "no_image_selected": "未选择图片",
+  "particle_image_scale": "图片缩放比例:",
+  "particle_image_note": "提示: 建议使用透明背景的 PNG 图片,尺寸 32x32 到 128x128 像素效果最佳",
+  "particle_image_set": "✅ 已设定粒子图片: {0}",
+  "particle_image_cleared": "✅ 已清除粒子图片",
+
+  "key_image_group": "按键背景图片",
+  "key_use_image": "使用图片作为按键背景",
+  "choose_key_image": "选择按键背景图片",
+  "clear_key_image": "清除按键背景",
+  "key_image_scale_mode": "图片缩放模式:",
+  "scale_stretch": "拉伸填满",
+  "scale_fit": "保持比例(留空白)",
+  "scale_crop": "保持比例(裁切)",
+  "key_image_opacity": "图片透明度:",
+  "key_image_blend_color": "混合按键颜色",
+  "key_image_note": "提示: 建议使用透明背景的 PNG 图片,尺寸建议与按键大小接近",
+  "key_image_set": "✅ 已设定按键背景: {0}",
+  "key_image_cleared": "✅ 已清除按键背景图片",
+
+  "vis_image_group": "音符可视化图片",
+  "vis_use_image": "使用图片作为音符",
+  "choose_vis_image": "选择音符图片",
+  "clear_vis_image": "清除音符图片",
+  "vis_image_opacity": "音符图片透明度:",
+  "vis_image_blend_gradient": "叠加渐层效果",
+  "vis_image_note": "提示: 图片会垂直拉伸跟随音符长度,建议使用重复纹理或渐层图片",
+  "vis_image_set": "✅ 已设定音符图片: {0}",
+  "vis_image_cleared": "✅ 已清除音符图片",
+
+  "shake_group": "震动效果"
 }
