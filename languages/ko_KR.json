@@ -202,5 +202,14 @@
   "default_size_info": "현재 기본값: {0} x {1} (다음 프로그램 실행 시 사용)",
   "save_as_default_size": "기본 크기로 저장",
   "default_size_saved": "✅ 기본 크기로 저장됨: {0} x {1} (다음 실행 시 적용)",
-  "settings_size_note": "설명:\n• 창 가장자리를 드래그하여 크기를 조정하면 값이 자동으로 동기화됩니다\n• 크기에 만족하면 녹색 버튼을 클릭하여 기본 실행 크기로 저장하세요"
+  "settings_size_note": "설명:\n• 창 가장자리를 드래그하여 크기를 조정하면 값이 자동으로 동기화됩니다\n• 크기에 만족하면 녹색 버튼을 클릭하여 기본 실행 크기로 저장하세요",
+
+  "particle_color_mode": "파티클 색상:",
+  "particle_color_key": "키 색상",
+  "particle_color_white": "흰색",
+  "particle_color_rainbow": "무지개",
+  "particle_color_custom": "사용자 지정",
+  "particle_custom_color": "사용자 지정 파티클 색상:",
+  "glow_rainbow_speed": "글로우 무지개 속도:",
+  "particle_rainbow_speed": "파티클 무지개 속도:"
 }
