@@ -7,7 +7,7 @@
   "positions_reset": "✅ 按键位置已重置为水平对齐!",
   "window_centered": "✅ 窗口已移动到屏幕中央!",
   "loading": "正在加载...",
-  "version": "版本 1.1",
+  "version": "版本 1.2",
 
   "tab_layout": "布局",
   "tab_kps": "KPS 设置",
@@ -172,9 +172,35 @@
   "max_display": "MAX: {0}",
   "stats_display": "总计: {0} | 时间: {1}分 {2}秒",
   "combo_display": "x{0}",
-  
+
   "stats_x_offset": "统计 X 偏移:",
   "stats_y_offset": "统计 Y 偏移:",
   "stats_font_size": "统计字体大小:",
-  "stats_color": "统计颜色:"
+  "stats_color": "统计颜色:",
+
+  "key_bg_opacity": "按键背景不透明度:",
+  "scroll_settings": "滚动设置",
+  "enable_smooth_scroll": "启用平滑滚动",
+  "scroll_fps": "滚动更新率 (FPS):",
+  "scroll_speed": "滚动速度 (0.1-1.0):",
+  "scroll_note": "提示: 更高的 FPS 和速度值会让滚动更流畅但消耗更多资源",
+  "tab_animation_settings": "标签页切换动画",
+  "enable_tab_animation": "启用标签页切换动画",
+  "tab_animation_duration": "动画时长 (毫秒):",
+  "tab_animation_note": "提示: 时长越短切换越快，建议范围 100-300 毫秒",
+  "animation_presets": "快速设置:",
+  "preset_fast": "快速 (100ms)",
+  "preset_normal": "正常 (180ms)",
+  "preset_slow": "缓慢 (300ms)",
+  "preset_applied": "✅ 已应用预设值: {0}",
+  "settings_window_size": "设置窗口大小",
+  "current_window_size": "当前窗口大小",
+  "settings_width": "窗口宽度:",
+  "settings_height": "窗口高度:",
+  "size_tip": "提示: 直接拖拉窗口边缘调整大小，数值会自动更新",
+  "default_window_size": "程序启动时的默认大小",
+  "default_size_info": "当前默认: {0} x {1} (下次打开程序时使用)",
+  "save_as_default_size": "保存为默认打开大小",
+  "default_size_saved": "✅ 已保存为默认大小: {0} x {1} (下次打开生效)",
+  "settings_size_note": "说明:\n• 直接拖拉窗口边缘调整大小，数值会自动同步\n• 调整满意后，点击绿色按钮保存为默认打开大小"
 }
