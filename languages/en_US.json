@@ -211,5 +211,7 @@
   "particle_color_custom": "Custom",
   "particle_custom_color": "Custom Particle Color:",
   "glow_rainbow_speed": "Glow Rainbow Speed:",
-  "particle_rainbow_speed": "Particle Rainbow Speed:"
+  "particle_rainbow_speed": "Particle Rainbow Speed:",
+  "rounded_radius": "Corner Radius:"
 }
+
