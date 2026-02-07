@@ -212,6 +212,42 @@
   "particle_custom_color": "Custom Particle Color:",
   "glow_rainbow_speed": "Glow Rainbow Speed:",
   "particle_rainbow_speed": "Particle Rainbow Speed:",
-  "rounded_radius": "Corner Radius:"
-}
+  "rounded_radius": "Corner Radius:",
 
+  "particle_image_group": "Particle Image Settings",
+  "particle_use_image": "Use image as particles",
+  "choose_particle_image": "Choose particle image",
+  "clear_particle_image": "Clear image",
+  "current_image": "Current image:",
+  "no_image_selected": "No image selected",
+  "particle_image_scale": "Image scale:",
+  "particle_image_note": "Tip: PNG images with transparent background are recommended, size 32x32 to 128x128 pixels work best",
+  "particle_image_set": "✅ Particle image set: {0}",
+  "particle_image_cleared": "✅ Particle image cleared",
+
+  "key_image_group": "Key Background Image",
+  "key_use_image": "Use image as key background",
+  "choose_key_image": "Choose key background image",
+  "clear_key_image": "Clear key background",
+  "key_image_scale_mode": "Image scale mode:",
+  "scale_stretch": "Stretch to fill",
+  "scale_fit": "Fit (with padding)",
+  "scale_crop": "Fit (crop)",
+  "key_image_opacity": "Image opacity:",
+  "key_image_blend_color": "Blend with key color",
+  "key_image_note": "Tip: PNG images with transparent background are recommended, size should be close to key size",
+  "key_image_set": "✅ Key background set: {0}",
+  "key_image_cleared": "✅ Key background image cleared",
+
+  "vis_image_group": "Note Visualization Image",
+  "vis_use_image": "Use image as note",
+  "choose_vis_image": "Choose note image",
+  "clear_vis_image": "Clear note image",
+  "vis_image_opacity": "Note image opacity:",
+  "vis_image_blend_gradient": "Overlay gradient effect",
+  "vis_image_note": "Tip: Image will stretch vertically to follow note length, repeating textures or gradients are recommended",
+  "vis_image_set": "✅ Note image set: {0}",
+  "vis_image_cleared": "✅ Note image cleared",
+
+  "shake_group": "Shake Effect"
+}
