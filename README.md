@@ -3,7 +3,7 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
 
 ## 🆕 Updates
 
-### Version 1.1 (February 2, 2026)
+### 📋 Version 1.1 (February 2, 2026)
 
 #### **New Features**
 - ✨ **osu! Song Tracker Integration**
@@ -41,10 +41,40 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
   - `custom_window_size`, `window_width`, `window_height`
   - `use_custom_positions`, `key_custom_positions`
  
-### Version 1.1.1 (February 3, 2026)
+### 📋 Version 1.1.1 (February 3, 2026)
  - Add more statistical data options
 
----
+### 📋 Version 1.2 (February 7, 2026)
+#### **New Features**
+- Scrollable Interface: Added smooth scrolling support to settings window
+  - Configurable scroll FPS (30-144) and speed (0.1-1.0)
+  - Toggle to enable/disable smooth scrolling
+
+- Tab Animations: Smooth fade transitions when switching tabs
+  - Adjustable duration (50-1000ms)
+  - Quick presets: Fast (100ms) | Normal (180ms) | Slow (300ms)
+
+
+- Dynamic Window Sizing:
+  - Real-time window size change
+  - Save custom default window size separate from current session
+  - "Save as Default Size" button for persistent preferences
+
+-UI Improvements
+
+  - Compact Design: Reduced bottom bar spacing
+  
+  - Save button height: 50px → 35px
+  - Optimized padding and margins for cleaner look
+  - Enhanced Styling: Fixed ComboBox dropdown appearance with proper hover effects
+
+- 🔧 Technical Updates
+
+  - Added QScrollArea wrapper for settings content
+  - Implemented smooth scroll with easing animation
+  - Added graphics opacity effects for tab transitions
+  - Real-time window resize synchronization
+  - Programmatic resize flag to prevent infinite loops
 
 ## ✨ Features
 
