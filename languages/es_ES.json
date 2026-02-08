@@ -247,6 +247,24 @@
   "vis_image_note": "Consejo: La imagen se estirará verticalmente según la longitud de la nota, se recomienda usar texturas repetitivas o degradados",
   "vis_image_set": "✅ Imagen de nota configurada: {0}",
   "vis_image_cleared": "✅ Imagen de nota eliminada",
+  "shake_group": "Efecto de vibración",
 
-  "shake_group": "Efecto de vibración"
+  "import_export_group": "Importar/Exportar Configuración",
+  "export_settings": "Exportar Archivo de Configuración",
+  "import_settings": "Importar Archivo de Configuración",
+  "last_import": "Última Importación",
+  "export_success": "✅ Configuración exportada: {0}",
+  "export_error": "Error al exportar",
+  "import_success_detail": "✅ Importación completada!\nÉxito: {0} elementos | Omitidos: {1} elementos | Nuevos: {2} elementos | Total: {3} elementos",
+  "import_error": "Error al importar",
+  "settings_applied": "Configuración aplicada",
+
+  "reset_to_default": "Restablecer a Configuración Predeterminada",
+  "confirm_reset": "Confirmar Restablecimiento",
+  "reset_warning": "¿Está seguro de que desea restablecer toda la configuración a los valores predeterminados?",
+  "reset_keep_stats": "Restablecer (Mantener Estadísticas)",
+  "reset_all": "Restablecimiento Completo",
+  "cancel": "Cancelar",
+  "reset_success": "Configuración restablecida a valores predeterminados",
+  "reset_error": "Error al restablecer"
 }
