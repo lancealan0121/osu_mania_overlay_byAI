@@ -79,6 +79,11 @@ A beautiful osu!mania keyboard press visualizer with customizable styles, partic
   - Programmatic resize flag to prevent infinite loops
   - Fixed the rainbow effect issue
   - Fixed memory leak issue
+ 
+### 📋 Version 1.3 (February 8, 2026)
+#### **New Features**
+- Add settings for importing/exporting/resetting
+- Fixed A LOT of issues
 
 ## ✨ Features
 
