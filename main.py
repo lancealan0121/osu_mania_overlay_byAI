@@ -52,7 +52,7 @@ class TranslationManager:
     def load_fallback_translations(self):
         self.translations = {
             "zh_TW": {
-                "window_title": "OL Mode v1 - 增強設定",
+                "window_title": "OL Mode v1 - 設定",
                 "save_button": "儲存設定",
                 "language": "語言:",
                 "language_note": "請將語言檔案放入 languages 資料夾",
@@ -92,44 +92,106 @@ translation_manager = TranslationManager()
 def t(key):
     return translation_manager.get(key)
 
-CONFIG_FILE = "osu_OL_v1_config.json"
+CONFIG_FILE = "OL_Config_AutoLoad.json"
 DEFAULT_CONFIG = {
+    # ===== 按鍵設定 =====
     "key_count": 4,
     "keys": ["d", "f", "j", "k"],
-    "colors": ["#00E5FF", "#00FF88", "#FF0077", "#FFD600"],
-    "width": 70, "height": 50, "spacing": 12, "fps_limit": 144,
-    "max_kps": 32, "kps_font_size": 20, "kps_pos_x": 0, "kps_pos_y": 10,
-    "spring_stiffness": 25, "press_scale": 85,
-    "enable_vis": True, "vis_height": 400, "vis_speed": 8, "vis_opacity": 180,
-    "enable_part": True, "part_count": 12, "part_gravity": 40, "part_force": 60, "part_decay": 30,
-    "enable_glow": True, "glow_spread": 25, "glow_intensity": 150, "glow_decay": 8,
-    "enable_ripple": True, "ripple_speed": 5,
-    "window_x": 100, "window_y": 100, "settings_x": 600, "settings_y": 100,
-    "animation_style": "default", "key_shape": "rounded", "background_opacity": 0,
-    "key_background_opacity": 220,
-    "enable_rainbow": False, "rainbow_speed": 5,
-    "glow_rainbow_speed": 5,
+    "colors": ["#FF6B9D", "#C44569", "#FEA47F", "#F97F51"],  # 更好看的漸層色
+
+    # ===== 按鍵尺寸 =====
+    "width": 80,
+    "height": 60,
+    "spacing": 15,
+    "key_background_opacity": 200,
+    "background_opacity": 0,
+
+    # ===== 按鍵外觀 =====
+    "key_shape": "rounded",
+    "rounded_radius": 8,
+    "border_width": 3,
+    "border_glow": True,
+    "animation_style": "default",
+    "spring_stiffness": 30,
+    "press_scale": 90,
+    "rotation_on_press": 0,
+
+    # ===== 視覺效果（預設全關） =====
+    "enable_vis": False,
+    "vis_height": 400,
+    "vis_speed": 8,
+    "vis_opacity": 180,
+    "vis_gradient": True,
+
+    "enable_part": False,
+    "part_count": 12,
+    "part_gravity": 40,
+    "part_force": 60,
+    "part_decay": 30,
+    "particle_shape": "circle",
+    "particle_size_min": 2,
+    "particle_size_max": 6,
+    "particle_color_mode": "key",
+    "particle_custom_color": "#FF69B4",
     "particle_rainbow_speed": 5,
-    "enable_trail": True, "trail_length": 5,
-    "enable_shake": False, "shake_intensity": 5,
-    "enable_combo": True, "combo_reset_time": 2.0,
-    "press_sound": False, "border_width": 2, "border_glow": True, "rotation_on_press": 0,
-    "enable_wave_distortion": False, "wave_amplitude": 10, "wave_frequency": 2,
-    "glow_color_mode": "key", "glow_custom_color": "#FF0099",
-    "particle_shape": "circle", "particle_size_min": 2, "particle_size_max": 6,
-    "enable_stats": True, "total_presses": 0, "session_start": 0,
+
+    "enable_glow": False,
+    "glow_spread": 25,
+    "glow_intensity": 150,
+    "glow_decay": 8,
+    "glow_color_mode": "key",
+    "glow_custom_color": "#FF0099",
+    "glow_rainbow_speed": 5,
+
+    "enable_trail": False,
+    "trail_length": 5,
+
+    "enable_shake": False,
+    "shake_intensity": 5,
+
+    "enable_rainbow": False,
+    "rainbow_speed": 5,
+
+    "enable_ripple": False,
+    "ripple_speed": 5,
+
+    "enable_wave_distortion": False,
+    "wave_amplitude": 10,
+    "wave_frequency": 2,
+
+    # ===== KPS 顯示 =====
+    "show_kps": True,
+    "kps_font_size": 24,
+    "kps_pos_x": 0,
+    "kps_pos_y": 10,
+    "max_kps": 32,
+    "kps_color_change": True,
+    "kps_custom_color": "#FFFFFF",
+
+    "show_max_kps": False,
+    "max_kps_pos_x": 0,
+    "max_kps_pos_y": 50,
+    "max_kps_color": "#FFD700",
+    "auto_switch_max": False,
+    "switch_delay": 5.0,
+
+    # ===== 統計資訊 =====
+    "enable_stats": False,
+    "total_presses": 0,
+    "session_start": 0,
     "stats_pos_x": 10,
     "stats_pos_y": 10,
     "stats_font_size": 12,
     "stats_color": "#969696",
-    "show_key_count": True, "key_count_font_size": 12, "key_count_color": "#FFFFFF",
-    "show_kps": True, "kps_color_change": True, "kps_custom_color": "#FFFFFF",
-    "vis_gradient": True, "show_max_kps": True,
-    "max_kps_pos_x": 0, "max_kps_pos_y": 50, "max_kps_color": "#FFD700",
-    "language": "zh_TW", "auto_switch_max": True, "switch_delay": 5.0,
-    "toggle_settings_key": "f1",
-    "use_custom_positions": False,
-    "key_custom_positions": [],
+
+    "show_key_count": True,
+    "key_count_font_size": 12,
+    "key_count_color": "#FFFFFF",
+
+    "enable_combo": False,
+    "combo_reset_time": 2.0,
+
+    # ===== osu! 追蹤 =====
     "enable_osu_tracker": False,
     "show_song_name": True,
     "show_difficulty": True,
@@ -145,10 +207,22 @@ DEFAULT_CONFIG = {
     "current_song": "",
     "current_artist": "",
     "current_difficulty": "",
+
+    # ===== 視窗設定 =====
+    "window_x": 100,
+    "window_y": 100,
+    "settings_x": 600,
+    "settings_y": 100,
     "custom_window_size": False,
     "window_width": 640,
     "window_height": 700,
 
+    # ===== 進階設定 =====
+    "fps_limit": 144,
+    "press_sound": False,
+
+    # ===== 介面設定 =====
+    "language": "zh_TW",
     "enable_smooth_scroll": True,
     "smooth_scroll_fps": 60,
     "smooth_scroll_speed": 0.3,
@@ -156,24 +230,33 @@ DEFAULT_CONFIG = {
     "settings_window_height": 650,
     "enable_tab_animation": True,
     "tab_animation_duration": 180,
-    "rounded_radius": 6,
-    "particle_color_mode": "key",
-    "particle_custom_color": "#FF69B4",
 
+    # ===== 快捷鍵 =====
+    "toggle_settings_key": "f1",
+
+    # ===== 自訂位置 =====
+    "use_custom_positions": False,
+    "key_custom_positions": [],
+
+    # ===== 圖片設定 =====
     "particle_use_image": False,
     "particle_image_path": "",
-    "particle_image_scale": 1.0,  # 圖片縮放比例
+    "particle_image_scale": 1.0,
 
     "key_use_image": False,
     "key_image_path": "",
-    "key_image_scale_mode": "stretch",  # stretch(拉伸), fit(保持比例), crop(裁切填滿)
-    "key_image_opacity": 100,  # 0-100
-    "key_image_blend_color": True,  # 是否混合按鍵顏色
+    "key_image_scale_mode": "stretch",
+    "key_image_opacity": 100,
+    "key_image_blend_color": True,
 
     "vis_use_image": False,
     "vis_image_path": "",
     "vis_image_opacity": 180,
-    "vis_image_blend_gradient": True,  # 是否保留漸層效果
+    "vis_image_blend_gradient": True,
+
+    # ===== 匯入歷史 =====
+    "last_imported_file": "",
+    "import_history": [],
 }
 
 
@@ -197,9 +280,217 @@ class ConfigManager:
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.data, f, indent=4, ensure_ascii=False)
 
+    def import_from_json(self, filepath):
+        """智能匯入 JSON 設定檔"""
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                imported_data = json.load(f)
+
+            matched = 0
+            skipped = 0
+            new_fields = 0
+            skipped_details = []
+
+            for key, value in imported_data.items():
+                # 1. 完全匹配
+                if key in DEFAULT_CONFIG:
+                    expected_type = type(DEFAULT_CONFIG[key])
+                    actual_type = type(value)
+
+                    # ===== 類型轉換規則 =====
+                    converted = False
+
+                    # 規則 1: int/float 互相轉換
+                    if expected_type in (int, float) and actual_type in (int, float):
+                        if expected_type == int:
+                            self.data[key] = int(value)
+                        else:
+                            self.data[key] = float(value)
+                        converted = True
+
+                    # 規則 2: list 轉 str（取第一個元素）
+                    elif expected_type == str and actual_type == list:
+                        if len(value) > 0:
+                            self.data[key] = str(value[0])
+                            converted = True
+                        else:
+                            skipped_details.append({
+                                "key": key,
+                                "reason": "空列表無法轉換為字串",
+                                "expected": "str",
+                                "actual": "list",
+                                "value": "[]"
+                            })
+                            skipped += 1
+                            continue
+
+                    # 規則 3: str 轉 list（單個元素包裝）
+                    elif expected_type == list and actual_type == str:
+                        self.data[key] = [value]
+                        converted = True
+
+                    # 規則 4: 完全匹配
+                    elif actual_type == expected_type:
+                        self.data[key] = value
+                        converted = True
+
+                    # 轉換成功
+                    if converted:
+                        matched += 1
+                    else:
+                        skipped += 1
+                        skipped_details.append({
+                            "key": key,
+                            "reason": "類型不匹配且無法自動轉換",
+                            "expected": expected_type.__name__,
+                            "actual": actual_type.__name__,
+                            "value": str(value)[:50]
+                        })
+
+                # 2. 模糊匹配
+                else:
+                    similar_key = self._find_similar_key(key)
+                    if similar_key:
+                        expected_type = type(DEFAULT_CONFIG[similar_key])
+                        actual_type = type(value)
+
+                        # 套用相同的轉換邏輯
+                        converted = False
+
+                        if expected_type in (int, float) and actual_type in (int, float):
+                            if expected_type == int:
+                                self.data[similar_key] = int(value)
+                            else:
+                                self.data[similar_key] = float(value)
+                            converted = True
+
+                        elif expected_type == str and actual_type == list:
+                            if len(value) > 0:
+                                self.data[similar_key] = str(value[0])
+                                converted = True
+
+                        elif expected_type == list and actual_type == str:
+                            self.data[similar_key] = [value]
+                            converted = True
+
+                        elif actual_type == expected_type:
+                            self.data[similar_key] = value
+                            converted = True
+
+                        if converted:
+                            matched += 1
+                        else:
+                            skipped += 1
+                            skipped_details.append({
+                                "key": key,
+                                "reason": f"模糊匹配到 '{similar_key}' 但類型不符且無法轉換",
+                                "expected": expected_type.__name__,
+                                "actual": actual_type.__name__,
+                                "value": str(value)[:50]
+                            })
+                    else:
+                        # 3. 新欄位（完全不存在）
+                        self.data[key] = value
+                        new_fields += 1
+
+            # 儲存匯入歷史
+            if "import_history" not in self.data:
+                self.data["import_history"] = []
+
+            import_record = {
+                "file": os.path.basename(filepath),
+                "time": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "matched": matched,
+                "skipped": skipped,
+                "new": new_fields,
+                "skipped_details": skipped_details
+            }
+            self.data["import_history"].append(import_record)
+            self.data["last_imported_file"] = filepath
+
+            # 立即儲存
+            self.save()
+
+            return {
+                "success": True,
+                "matched": matched,
+                "skipped": skipped,
+                "new": new_fields,
+                "total": len(imported_data),
+                "skipped_details": skipped_details
+            }
+
+        except json.JSONDecodeError:
+            return {"success": False, "error": "JSON 格式錯誤"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def _find_similar_key(self, search_key):
+        """
+        尋找相似的鍵名（模糊匹配）
+        使用編輯距離算法
+        """
+        search_key_lower = search_key.lower()
+        best_match = None
+        min_distance = float('inf')
+
+        for config_key in DEFAULT_CONFIG.keys():
+            # 計算相似度（簡化版 Levenshtein 距離）
+            distance = self._levenshtein_distance(search_key_lower, config_key.lower())
+
+            # 如果距離小於 3 且是目前最佳匹配
+            if distance < min_distance and distance <= 3:
+                min_distance = distance
+                best_match = config_key
+
+        return best_match
+
+    def reset_to_default(self, keep_stats=True, keep_positions=True):
+        backup = {}
+
+        if keep_stats:
+            backup["total_presses"] = self.data.get("total_presses", 0)
+            backup["session_start"] = self.data.get("session_start", 0)
+
+        if keep_positions:
+            backup["window_x"] = self.data.get("window_x", 100)
+            backup["window_y"] = self.data.get("window_y", 100)
+            backup["settings_x"] = self.data.get("settings_x", 600)
+            backup["settings_y"] = self.data.get("settings_y", 100)
+
+        # 重置為預設
+        self.data = DEFAULT_CONFIG.copy()
+
+        self.data["max_kps_record"] = 0
+        # 恢復備份的資料
+        self.data.update(backup)
+
+        # 儲存
+        self.save()
+
+        return True
+
+    def _levenshtein_distance(self, s1, s2):
+        """計算兩個字串的編輯距離"""
+        if len(s1) < len(s2):
+            return self._levenshtein_distance(s2, s1)
+
+        if len(s2) == 0:
+            return len(s1)
+
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+
+        return previous_row[-1]
 
 cfg = ConfigManager()
-
 
 class Particle:
     def __init__(self, x, y, color, color_mode=None, custom_color=None):
@@ -462,7 +753,6 @@ class SplashScreen(QWidget):
 
 
 class OLOverlay(QWidget):
-
     def __init__(self):
         super().__init__()
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -1267,12 +1557,24 @@ class OLSettings(QWidget):
 
         main_lay.addWidget(bottom_widget)
 
+        watermark = QLabel("• Made by yulun • ")
+        watermark.setAlignment(Qt.AlignCenter)
+        watermark.setStyleSheet("""
+                    background-color: #1A1A1A; 
+                    color: #707070; 
+                    font-size: 9px; 
+                    padding: 4px;
+                    border-top: 1px solid #2A2A2A;
+                """)
+        main_lay.addWidget(watermark)
+
         scroll_area.viewport().installEventFilter(self)
         self.scroll_area = scroll_area
         self.smooth_scroll_timer = QTimer()
         self.smooth_scroll_timer.timeout.connect(self._smooth_scroll_step)
         self.scroll_target = 0
         self.scroll_speed = 0
+
 
     def eventFilter(self, obj, event):
         if obj == self.scroll_area.viewport() and event.type() == event.Type.Wheel:
@@ -1330,18 +1632,62 @@ class OLSettings(QWidget):
 
             pos = self.pos()
             was_visible = self.isVisible()
-
             current_tab_index = self.tabs.currentIndex()
 
+            # ===== 🆕 完整清理動畫系統 =====
+            # 1. 停止並刪除所有動畫
+            if hasattr(self, 'fade_out_animation') and self.fade_out_animation:
+                self.fade_out_animation.stop()
+                self.fade_out_animation.deleteLater()
+                self.fade_out_animation = None
+
+            if hasattr(self, 'fade_in_animation') and self.fade_in_animation:
+                self.fade_in_animation.stop()
+                self.fade_in_animation.deleteLater()
+                self.fade_in_animation = None
+
+            # 2. 重置動畫狀態
+            self.animation_running = False
+
+            # 3. 清理所有標籤頁的 GraphicsEffect
+            for i in range(self.tabs.count()):
+                widget = self.tabs.widget(i)
+                if widget:
+                    # 清理主 widget 的 effect
+                    if widget.graphicsEffect():
+                        widget.graphicsEffect().deleteLater()
+                        widget.setGraphicsEffect(None)
+
+                    # 清理所有子 widget 的 effect
+                    for child in widget.findChildren(QWidget):
+                        if child.graphicsEffect():
+                            child.graphicsEffect().deleteLater()
+                            child.setGraphicsEffect(None)
+
+            # 4. 斷開 currentChanged 信號(避免重建時觸發)
+            try:
+                self.tabs.currentChanged.disconnect()
+            except:
+                pass
+
             def rebuild_ui():
+                # 5. 重建所有標籤頁
                 while self.tabs.count() > 0:
                     self.tabs.removeTab(0)
+
                 self.create_all_tabs()
                 self.setWindowTitle(t("window_title"))
                 self.save_btn.setText(t("save_button"))
 
+                # 6. 重新連接信號
+                self.tabs.currentChanged.connect(self.on_tab_changing)
+
+                # 7. 恢復標籤頁並重置索引
                 if current_tab_index < self.tabs.count():
                     self.tabs.setCurrentIndex(current_tab_index)
+
+                # ===== 🆕 強制重置 current_tab_index =====
+                self.current_tab_index = self.tabs.currentIndex()
 
                 if was_visible:
                     self.show()
@@ -2169,6 +2515,40 @@ class OLSettings(QWidget):
         keybind_group.setLayout(keybindf)
         window_main_layout.addWidget(keybind_group)
 
+        import_export_group = QGroupBox(t("import_export_group"))
+        import_export_layout = QFormLayout()
+
+        # 匯出按鈕
+        export_btn = QPushButton(t("export_settings"))
+        export_btn.setStyleSheet(
+            "background: #27AE60; color: white; padding: 10px; font-weight: bold; font-size: 13px;")
+        export_btn.clicked.connect(self.export_settings)
+        import_export_layout.addRow(export_btn)
+
+        # 匯入按鈕
+        import_btn = QPushButton(t("import_settings"))
+        import_btn.setStyleSheet(
+            "background: #3498DB; color: white; padding: 10px; font-weight: bold; font-size: 13px;")
+        import_btn.clicked.connect(self.import_settings)
+        import_export_layout.addRow(import_btn)
+
+        # ===== 🆕 重置按鈕 =====
+        reset_btn = QPushButton(t("reset_to_default"))
+        reset_btn.setStyleSheet(
+            "background: #E74C3C; color: white; padding: 10px; font-weight: bold; font-size: 13px;")
+        reset_btn.clicked.connect(self.reset_to_default_settings)
+        import_export_layout.addRow(reset_btn)
+
+        # 匯入歷史顯示
+        if cfg.data.get("last_imported_file"):
+            last_import = QLabel(f"{t('last_import')}: {os.path.basename(cfg.data['last_imported_file'])}")
+            last_import.setStyleSheet("color: #95A5A6; font-size: 11px;")
+            last_import.setWordWrap(True)
+            import_export_layout.addRow(last_import)
+
+        import_export_group.setLayout(import_export_layout)
+        window_main_layout.addWidget(import_export_group)
+
         lang_group = QGroupBox(t("tab_language"))
         langf = QFormLayout()
 
@@ -2261,8 +2641,174 @@ class OLSettings(QWidget):
             self.show_message(t("vis_image_set").format(os.path.basename(file_path)))
             self.auto_apply()
 
+    def export_settings(self):
+        """匯出當前設定到 JSON 檔案"""
+        from PySide6.QtWidgets import QFileDialog
+
+        # 生成預設檔名（包含時間戳記）
+        default_name = f"OL_Settings_{time.strftime('%Y%m%d_%H%M%S')}.json"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            t("export_settings"),
+            default_name,
+            "JSON Files (*.json);;All Files (*.*)"
+        )
+
+        if file_path:
+            try:
+                # 確保副檔名
+                if not file_path.endswith('.json'):
+                    file_path += '.json'
+
+                # 寫入檔案（格式化輸出）
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(cfg.data, f, indent=4, ensure_ascii=False)
+
+                self.show_message(t("export_success").format(os.path.basename(file_path)))
+            except Exception as e:
+                self.show_message(f"❌ {t('export_error')}: {str(e)}")
+
+    def import_settings(self):
+        """匯入 JSON 設定檔"""
+        from PySide6.QtWidgets import QFileDialog
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            t("import_settings"),
+            "",
+            "JSON Files (*.json);;All Files (*.*)"
+        )
+
+        if file_path:
+            result = cfg.import_from_json(file_path)
+
+            if result["success"]:
+                # 顯示詳細匯入結果
+                message = t("import_success_detail").format(
+                    result["matched"],
+                    result["skipped"],
+                    result["new"],
+                    result["total"]
+                )
+
+                # ===== 🆕 顯示跳過的詳細資訊 =====
+                if result.get("skipped_details"):
+                    print("\n========== 匯入 Debug 資訊 ==========")
+                    for detail in result["skipped_details"]:
+                        print(f"❌ 跳過: {detail['key']}")
+                        print(f"   原因: {detail['reason']}")
+                        print(f"   預期類型: {detail['expected']}")
+                        print(f"   實際類型: {detail['actual']}")
+                        print(f"   值: {detail['value']}")
+                        print()
+                    print("=====================================\n")
+
+                self.show_message(message)
+
+                # 重新載入 UI
+                QTimer.singleShot(500, self.reload_ui_after_import)
+            else:
+                self.show_message(f"❌ {t('import_error')}: {result['error']}")
+
+    def reload_ui_after_import(self):
+        """匯入後重新載入 UI"""
+        pos = self.pos()
+        current_tab = self.tabs.currentIndex()
+
+        # ===== 完整清理動畫系統 =====
+        # 1. 停止並刪除所有動畫
+        if hasattr(self, 'fade_out_animation') and self.fade_out_animation:
+            self.fade_out_animation.stop()
+            self.fade_out_animation.deleteLater()
+            self.fade_out_animation = None
+
+        if hasattr(self, 'fade_in_animation') and self.fade_in_animation:
+            self.fade_in_animation.stop()
+            self.fade_in_animation.deleteLater()
+            self.fade_in_animation = None
+
+        # 2. 重置動畫狀態
+        self.animation_running = False
+
+        # 3. 清理所有標籤頁的 GraphicsEffect
+        for i in range(self.tabs.count()):
+            widget = self.tabs.widget(i)
+            if widget:
+                # 清理主 widget 的 effect
+                if widget.graphicsEffect():
+                    widget.graphicsEffect().deleteLater()
+                    widget.setGraphicsEffect(None)
+
+                # 清理所有子 widget 的 effect
+                for child in widget.findChildren(QWidget):
+                    if child.graphicsEffect():
+                        child.graphicsEffect().deleteLater()
+                        child.setGraphicsEffect(None)
+
+        # 4. 斷開 currentChanged 信號（避免重建時觸發）
+        try:
+            self.tabs.currentChanged.disconnect()
+        except:
+            pass
+
+        # 5. 重建所有標籤頁
+        while self.tabs.count() > 0:
+            self.tabs.removeTab(0)
+
+        self.create_all_tabs()
+
+        # 6. 重新連接信號
+        self.tabs.currentChanged.connect(self.on_tab_changing)
+
+        # 7. 恢復標籤頁並重置索引
+        if current_tab < self.tabs.count():
+            self.tabs.setCurrentIndex(current_tab)
+
+        # ===== 🆕 強制重置 current_tab_index =====
+        self.current_tab_index = self.tabs.currentIndex()
+
+        # 8. 套用設定到 overlay
+        self.overlay.setup_ui()
+        self.overlay.update()
+
+        # 9. 延遲顯示訊息
+        QTimer.singleShot(2500, lambda: self.show_message("✅ " + t("settings_applied")))
+
+    def reset_to_default_settings(self):
+        """重置為預設設定（帶確認對話框）"""
+        from PySide6.QtWidgets import QMessageBox
+
+        # 確認對話框
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(t("confirm_reset"))
+        msg_box.setText(t("reset_warning"))
+        msg_box.setIcon(QMessageBox.Warning)
+
+        # 自訂按鈕
+        keep_stats_btn = msg_box.addButton(t("reset_keep_stats"), QMessageBox.YesRole)
+        reset_all_btn = msg_box.addButton(t("reset_all"), QMessageBox.DestructiveRole)
+        cancel_btn = msg_box.addButton(t("cancel"), QMessageBox.RejectRole)
+
+        msg_box.setDefaultButton(cancel_btn)
+        msg_box.exec()
+
+        clicked = msg_box.clickedButton()
+
+        if clicked == cancel_btn:
+            return
+
+        # 執行重置
+        keep_stats = (clicked == keep_stats_btn)
+        success = cfg.reset_to_default(keep_stats=keep_stats, keep_positions=True)
+
+        if success:
+            self.show_message("✅ " + t("reset_success"))
+            QTimer.singleShot(500, self.reload_ui_after_import)
+        else:
+            self.show_message("❌ " + t("reset_error"))
+
     def clear_key_image(self):
-        """清除按鍵背景圖片"""
         cfg.data["key_image_path"] = ""
         cfg.data["key_use_image"] = False
         self.key_image_path_label.setText(t("no_image_selected"))
@@ -2271,7 +2817,6 @@ class OLSettings(QWidget):
         self.auto_apply()
 
     def clear_vis_image(self):
-        """清除音符視覺化圖片"""
         cfg.data["vis_image_path"] = ""
         cfg.data["vis_use_image"] = False
         self.vis_image_path_label.setText(t("no_image_selected"))
@@ -2280,28 +2825,24 @@ class OLSettings(QWidget):
         self.auto_apply()
 
     def on_particle_image_toggle(self):
-        """切換粒子圖片模式時的處理"""
         use_image = self.ui_part_use_image.isChecked() if hasattr(self, 'ui_part_use_image') else False
 
-        # 禁用/啟用粒子形狀下拉選單
         if hasattr(self, 'ui_part_shape'):
             self.ui_part_shape.setEnabled(not use_image)
-            # 添加視覺樣式變化
+
             if use_image:
                 self.ui_part_shape.setStyleSheet("QComboBox { color: #888; background-color: #2A2A2A; }")
             else:
-                self.ui_part_shape.setStyleSheet("")  # 恢復預設樣式
+                self.ui_part_shape.setStyleSheet("")
 
-        # 禁用/啟用粒子顏色模式下拉選單
         if hasattr(self, 'ui_part_color_mode'):
             self.ui_part_color_mode.setEnabled(not use_image)
-            # 添加視覺樣式變化
+
             if use_image:
                 self.ui_part_color_mode.setStyleSheet("QComboBox { color: #888; background-color: #2A2A2A; }")
             else:
                 self.ui_part_color_mode.setStyleSheet("")
 
-        # 禁用/啟用自訂顏色按鈕
         if hasattr(self, 'ui_part_custom_color_btn'):
             self.ui_part_custom_color_btn.setEnabled(not use_image)
             # 添加視覺樣式變化
@@ -2400,7 +2941,6 @@ class OLSettings(QWidget):
                 self.ui_settings_height.blockSignals(False)
 
     def closeEvent(self, event):
-
         if self.fade_out_animation:
             self.fade_out_animation.stop()
             self.fade_out_animation.deleteLater()
@@ -2686,8 +3226,7 @@ class OLSettings(QWidget):
             "stats_color": self.ui_stats_color,
             "fps_limit": self.ui_fps.value(),
             "key_count": self.ui_cnt.value(),
-            "keys": [btn.current_key for btn in self.keybind_buttons] if hasattr(self, 'keybind_buttons') else cfg.data[
-                "keys"],
+            "keys": [btn.current_key for btn in self.keybind_buttons] if hasattr(self, 'keybind_buttons') else cfg.data["keys"],
             "colors": self.cls if hasattr(self, 'cls') else cfg.data["colors"],
             "show_key_count": self.ui_show_key_count.isChecked(),
             "key_count_font_size": self.ui_key_count_size.value(),
@@ -2718,16 +3257,14 @@ class OLSettings(QWidget):
             "particle_use_image": self.ui_part_use_image.isChecked() if hasattr(self, 'ui_part_use_image') else False,
             "particle_image_scale": self.ui_part_image_scale.value() if hasattr(self, 'ui_part_image_scale') else 1.0,
             "key_use_image": self.ui_key_use_image.isChecked() if hasattr(self, 'ui_key_use_image') else False,
-            "key_image_scale_mode": ["stretch", "fit", "crop"][self.ui_key_image_scale_mode.currentIndex()] if hasattr(
-                self, 'ui_key_image_scale_mode') else "stretch",
+            "key_image_scale_mode": ["stretch", "fit", "crop"][self.ui_key_image_scale_mode.currentIndex()] if hasattr(self, 'ui_key_image_scale_mode') else "stretch",
             "key_image_opacity": self.ui_key_image_opacity.value() if hasattr(self, 'ui_key_image_opacity') else 100,
-            "key_image_blend_color": self.ui_key_image_blend.isChecked() if hasattr(self,
-                                                                                    'ui_key_image_blend') else True,
+            "key_image_blend_color": self.ui_key_image_blend.isChecked() if hasattr(self,'ui_key_image_blend') else True,
             "vis_use_image": self.ui_vis_use_image.isChecked() if hasattr(self, 'ui_vis_use_image') else False,
             "vis_image_opacity": self.ui_vis_image_opacity.value() if hasattr(self, 'ui_vis_image_opacity') else 180,
-            "vis_image_blend_gradient": self.ui_vis_image_blend.isChecked() if hasattr(self,
-                                                                                       'ui_vis_image_blend') else True,
+            "vis_image_blend_gradient": self.ui_vis_image_blend.isChecked() if hasattr(self,'ui_vis_image_blend') else True,
         })
+
 
         self.overlay.setup_ui()
         self.overlay.timer.setInterval(int(1000 / cfg.data["fps_limit"]))
@@ -2945,25 +3482,9 @@ class OLSettings(QWidget):
         self.auto_apply()
         cfg.save()
 
-    def closeEvent(self, event):
-        cfg.data["settings_x"] = self.pos().x()
-        cfg.data["settings_y"] = self.pos().y()
-        cfg.save()
-        event.accept()
-
     def moveEvent(self, event):
         cfg.data["settings_x"] = self.pos().x()
         cfg.data["settings_y"] = self.pos().y()
-
-    def paintEvent(self, event):
-        super().paintEvent(event)
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QColor(120, 120, 120, 180))
-        painter.setFont(QFont("Arial", 9))
-        watermark_rect = QRectF(self.width() - 130, self.height() - 25, 120, 20)
-        painter.drawText(watermark_rect, Qt.AlignRight | Qt.AlignBottom, "Made By yulun <3")
-
 
 class ToggleKeybindListener(QThread):
     toggle_signal = Signal()
