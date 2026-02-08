@@ -248,6 +248,24 @@
   "vis_image_note": "Tip: Image will stretch vertically to follow note length, repeating textures or gradients are recommended",
   "vis_image_set": "✅ Note image set: {0}",
   "vis_image_cleared": "✅ Note image cleared",
+  "shake_group": "Shake Effect",
 
-  "shake_group": "Shake Effect"
+  "import_export_group": "Import/Export Settings",
+  "export_settings": "Export Settings File",
+  "import_settings": "Import Settings File",
+  "last_import": "Last Import",
+  "export_success": "✅ Settings exported: {0}",
+  "export_error": "Export failed",
+  "import_success_detail": "✅ Import complete!\nSuccess: {0} items | Skipped: {1} items | New: {2} items | Total: {3} items",
+  "import_error": "Import failed",
+  "settings_applied": "Settings applied",
+
+  "reset_to_default": "Reset to Default Settings",
+  "confirm_reset": "Confirm Reset",
+  "reset_warning": "Are you sure you want to reset all settings to default values?",
+  "reset_keep_stats": "Reset (Keep Stats)",
+  "reset_all": "Complete Reset",
+  "cancel": "Cancel",
+  "reset_success": "Settings reset to default values",
+  "reset_error": "Reset failed"
 }
