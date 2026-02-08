@@ -551,6 +551,9 @@ class KeyState:
         self.last_press_time = 0
         self.combo = 0
         self.was_pressed = False
+        self.vis_image_cache = {}
+        self.vis_base_pixmap = None
+        self.last_vis_image_path = ""
 
     def press(self, x_c, y_c):
         if not self.was_pressed:
@@ -829,6 +832,11 @@ class OLOverlay(QWidget):
 
         self.resize(w, h)
 
+        for state in self.keys_state:
+            if hasattr(state, 'vis_image_cache'):
+                state.vis_image_cache.clear()
+                state.vis_base_pixmap = None
+
     def get_key_position(self, index):
         kw, spacing = cfg.data["width"], cfg.data["spacing"]
         base_y = cfg.data["vis_height"] + 80
@@ -1096,14 +1104,38 @@ class OLOverlay(QWidget):
                     if cfg.data.get("vis_use_image", False):
                         image_path = cfg.data.get("vis_image_path", "")
                         if image_path and os.path.exists(image_path):
-                            pixmap = QPixmap(image_path)
-                            if not pixmap.isNull():
-                                # 拉伸圖片到音符大小
-                                scaled_pixmap = pixmap.scaled(
-                                    int(kw), int(n["h"]),
-                                    Qt.IgnoreAspectRatio,  # 垂直拉伸
-                                    Qt.SmoothTransformation
-                                )
+                            # ===== 快取管理 =====
+                            if k.last_vis_image_path != image_path or k.vis_base_pixmap is None:
+                                k.vis_base_pixmap = QPixmap(image_path)
+                                k.vis_image_cache.clear()
+                                k.last_vis_image_path = image_path
+
+                            if not k.vis_base_pixmap.isNull():
+                                note_height = int(n["h"])
+
+                                # ===== 🚀 快取策略：只快取高度在合理範圍內的圖片 =====
+                                if note_height > 2000:  # 超過 2000px 不快取
+                                    scaled_pixmap = k.vis_base_pixmap.scaled(
+                                        int(kw), note_height,
+                                        Qt.IgnoreAspectRatio,
+                                        Qt.FastTransformation  # ← 使用快速算法
+                                    )
+                                else:
+                                    # 使用快取
+                                    cache_key = (int(kw), note_height)
+
+                                    if cache_key not in k.vis_image_cache:
+                                        # 限制快取大小
+                                        if len(k.vis_image_cache) > 50:
+                                            k.vis_image_cache.clear()
+
+                                        k.vis_image_cache[cache_key] = k.vis_base_pixmap.scaled(
+                                            int(kw), note_height,
+                                            Qt.IgnoreAspectRatio,
+                                            Qt.SmoothTransformation
+                                        )
+
+                                    scaled_pixmap = k.vis_image_cache[cache_key]
 
                                 # 設定透明度
                                 vis_opacity = cfg.data.get("vis_image_opacity", 180) / 255.0
