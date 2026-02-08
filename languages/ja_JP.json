@@ -246,6 +246,24 @@
   "vis_image_note": "ヒント: 画像はノートの長さに合わせて縦方向に伸縮します、繰り返しテクスチャやグラデーション画像を推奨",
   "vis_image_set": "✅ ノート画像を設定しました: {0}",
   "vis_image_cleared": "✅ ノート画像をクリアしました",
+  "shake_group": "振動エフェクト",
 
-  "shake_group": "振動エフェクト"
+  "import_export_group": "設定のインポート/エクスポート",
+  "export_settings": "設定ファイルをエクスポート",
+  "import_settings": "設定ファイルをインポート",
+  "last_import": "最終インポート",
+  "export_success": "✅ 設定をエクスポートしました: {0}",
+  "export_error": "エクスポート失敗",
+  "import_success_detail": "✅ インポート完了！\n成功: {0} 項目 | スキップ: {1} 項目 | 新規: {2} 項目 | 合計: {3} 項目",
+  "import_error": "インポート失敗",
+  "settings_applied": "設定を適用しました",
+
+  "reset_to_default": "デフォルト設定にリセット",
+  "confirm_reset": "リセット確認",
+  "reset_warning": "すべての設定をデフォルト値にリセットしてもよろしいですか？",
+  "reset_keep_stats": "リセット（統計を保持）",
+  "reset_all": "完全リセット",
+  "cancel": "キャンセル",
+  "reset_success": "設定をデフォルト値にリセットしました",
+  "reset_error": "リセット失敗"
 }
