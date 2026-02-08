@@ -248,6 +248,24 @@
   "vis_image_note": "提示: 圖片會垂直拉伸跟隨音符長度，建議使用重複紋理或漸層圖片",
   "vis_image_set": "✅ 已設定音符圖片: {0}",
   "vis_image_cleared": "✅ 已清除音符圖片",
+  "shake_group": "震動效果",
 
-  "shake_group": "震動效果"
+  "import_export_group": "匯入/匯出設定",
+  "export_settings": "匯出設定檔",
+  "import_settings": "匯入設定檔",
+  "last_import": "上次匯入",
+  "export_success": "✅ 設定已匯出: {0}",
+  "export_error": "匯出失敗",
+  "import_success_detail": "✅ 匯入完成！\n成功: {0} 項 | 跳過: {1} 項 | 新增: {2} 項 | 總計: {3} 項",
+  "import_error": "匯入失敗",
+  "settings_applied": "設定已套用",
+
+  "reset_to_default": "重置為預設設定",
+  "confirm_reset": "確認重置",
+  "reset_warning": "確定要重置所有設定為預設值嗎？",
+  "reset_keep_stats": "重置（保留統計）",
+  "reset_all": "完全重置",
+  "cancel": "取消",
+  "reset_success": "設定已重置為預設值",
+  "reset_error": "重置失敗"
 }
