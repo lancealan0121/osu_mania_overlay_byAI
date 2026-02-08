@@ -248,6 +248,24 @@
   "vis_image_note": "팁: 이미지는 노트 길이에 따라 세로로 늘어나므로, 반복 텍스처나 그라데이션 이미지를 권장합니다",
   "vis_image_set": "✅ 노트 이미지 설정됨: {0}",
   "vis_image_cleared": "✅ 노트 이미지 제거됨",
+  "shake_group": "진동 효과",
 
-  "shake_group": "진동 효과"
+  "import_export_group": "설정 가져오기/내보내기",
+  "export_settings": "설정 파일 내보내기",
+  "import_settings": "설정 파일 가져오기",
+  "last_import": "마지막 가져오기",
+  "export_success": "✅ 설정을 내보냈습니다: {0}",
+  "export_error": "내보내기 실패",
+  "import_success_detail": "✅ 가져오기 완료!\n성공: {0}개 | 건너뜀: {1}개 | 새로 추가: {2}개 | 총: {3}개",
+  "import_error": "가져오기 실패",
+  "settings_applied": "설정이 적용되었습니다",
+
+  "reset_to_default": "기본 설정으로 초기화",
+  "confirm_reset": "초기화 확인",
+  "reset_warning": "모든 설정을 기본값으로 초기화하시겠습니까?",
+  "reset_keep_stats": "초기화 (통계 유지)",
+  "reset_all": "완전 초기화",
+  "cancel": "취소",
+  "reset_success": "설정을 기본값으로 초기화했습니다",
+  "reset_error": "초기화 실패"
 }
